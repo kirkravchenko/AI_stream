@@ -5,16 +5,16 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638306415540000000
-    m_Hash: 1771527184
+      ticks: 638306469950000000
+    m_Hash: 2125163582
   m_LockFileStatus:
     m_FilePath: /Users/kirill_kravchenko/Developer/AI_stream/Packages/packages-lock.json
     m_PathExists: 1
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638306415540000000
-    m_Hash: 1671734017
+      ticks: 638306469950000000
+    m_Hash: 542400171
 m_EmbeddedPackageManifests:
   m_ManifestsStatus: {}
 m_LocalPackages:
@@ -22,6 +22,68 @@ m_LocalPackages:
 m_ProjectPath: /Users/kirill_kravchenko/Developer/AI_stream/Packages
 m_EditorVersion: 2022.3.1f1 (f18e0c1b5784)
 m_ResolvedPackages:
+- packageId: com.srcnalt.openai-unity@https://github.com/srcnalt/OpenAI-Unity.git
+  testable: 0
+  isDirectDependency: 1
+  version: 0.1.15
+  source: 5
+  resolvedPath: /Users/kirill_kravchenko/Developer/AI_stream/Library/PackageCache/com.srcnalt.openai-unity@6548d0d2ae
+  assetPath: Packages/com.srcnalt.openai-unity
+  name: com.srcnalt.openai-unity
+  displayName: OpenAI Unity
+  author:
+    name: Sercan (Sarge) Altundas
+    email: 
+    url: https://github.com/srcnalt
+  category: 
+  type: 
+  description: An unofficial OpenAI Unity Package that aims to help you use OpenAI
+    API directly in Unity Game engine.
+  status: 0
+  errors: []
+  versions:
+    all: []
+    compatible: []
+    recommended: 
+    deprecated: []
+  dependencies:
+  - name: com.unity.nuget.newtonsoft-json
+    version: 3.2.1
+  resolvedDependencies:
+  - name: com.unity.nuget.newtonsoft-json
+    version: 3.2.1
+  keywords:
+  - openai
+  - chatgpt
+  - dalle
+  - ai
+  - whisper
+  registry:
+    id: main
+    name: 
+    url: https://packages.unity.com
+    scopes: []
+    isDefault: 1
+    capabilities: 7
+    configSource: 0
+  hideInEditor: 1
+  isAssetStorePackage: 0
+  datePublishedTicks: 0
+  documentationUrl: 
+  hasRepository: 0
+  repository:
+    type: 
+    url: 
+    revision: 
+    path: 
+  unityLifecycle:
+    version: 
+    nextVersion: 
+    recommendedVersion: 
+    isDeprecated: 0
+    deprecationMessage: 
+  isDeprecated: 0
+  deprecationMessage: 
 - packageId: com.unity.ai.navigation@1.1.4
   testable: 0
   isDirectDependency: 1

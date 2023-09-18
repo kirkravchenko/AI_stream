@@ -16,7 +16,7 @@ using System.Net;
 using Cinemachine;
 using DialogueAI;
 using Newtonsoft.Json;
-// using OpenAI;
+using OpenAI;
 // using Y2Sharp;
 
 #pragma warning disable CS4014

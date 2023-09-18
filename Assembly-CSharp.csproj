@@ -42,6 +42,7 @@
   <ItemGroup>
      <Compile Include="Assets/Scripts/AIThing.cs" />
      <Compile Include="Assets/Scripts/Dialogue.cs" />
+     <Compile Include="Assets/Scripts/AIMovement.cs" />
     <Reference Include="UnityEngine">
         <HintPath>/Applications/Unity/Hub/Editor/2022.3.1f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
@@ -687,8 +688,8 @@
     <Reference Include="Unity.VisualStudio.Editor">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.VisualStudio.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEditor.UI">
-        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+    <Reference Include="OpenAI.Runtime">
+        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/OpenAI.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualScripting.Core">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.VisualScripting.Core.dll</HintPath>
@@ -699,6 +700,9 @@
     <Reference Include="Unity.VisualScripting.Core.Editor">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.VisualScripting.Core.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEditor.UI">
+        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Rider.Editor">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
     </Reference>
@@ -707,6 +711,9 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.Flow.Editor">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.VisualScripting.Flow.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenAI.Editor">
+        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/OpenAI.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
