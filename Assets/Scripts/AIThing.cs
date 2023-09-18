@@ -6,28 +6,23 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Cinemachine;
-using DialogueAI;
-using Newtonsoft.Json;
 using UnityEngine;
 using Random = System.Random;
-using OpenAI;
 using TMPro;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 using System.Net;
-using Y2Sharp;
+using Cinemachine;
+// using Test;
+// using DialogueAI;
+// using Newtonsoft.Json;
+// using OpenAI;
+// using Y2Sharp;
 
 #pragma warning disable CS4014
 public class AIThing : MonoBehaviour
 {
-
-
-
-
-
-
     private Random _random = new Random();
     [SerializeField] private Transform[] KrustyKrab;
     [SerializeField] private Transform[] ConchStreet;
