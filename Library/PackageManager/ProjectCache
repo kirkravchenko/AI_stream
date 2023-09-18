@@ -5,7 +5,7 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638301148220000000
+      ticks: 638306326490000000
     m_Hash: 1619047885
   m_LockFileStatus:
     m_FilePath: /Users/kirill_kravchenko/Developer/AI_stream/Packages/packages-lock.json
@@ -13,7 +13,7 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638301148370000000
+      ticks: 638306326640000000
     m_Hash: 4141744343
 m_EmbeddedPackageManifests:
   m_ManifestsStatus: {}
@@ -112,6 +112,7 @@ m_ResolvedPackages:
     - 2.1.0-preview.3
     - 2.1.0-preview.5
     - 2.1.0-preview.6
+    - 2.1.0
     compatible:
     - 2.0.4
     - 2.0.5
@@ -119,6 +120,7 @@ m_ResolvedPackages:
     - 2.1.0-preview.3
     - 2.1.0-preview.5
     - 2.1.0-preview.6
+    - 2.1.0
     recommended: 2.0.7
     deprecated: []
   dependencies: []
