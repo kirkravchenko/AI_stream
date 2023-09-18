@@ -17,7 +17,7 @@ using Cinemachine;
 using DialogueAI;
 using Newtonsoft.Json;
 using OpenAI;
-// using Y2Sharp;
+using Y2Sharp;
 
 #pragma warning disable CS4014
 public class AIThing : MonoBehaviour
