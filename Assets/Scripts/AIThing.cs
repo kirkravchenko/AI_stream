@@ -14,9 +14,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 using System.Net;
 using Cinemachine;
-// using Test;
-// using DialogueAI;
-// using Newtonsoft.Json;
+using DialogueAI;
+using Newtonsoft.Json;
 // using OpenAI;
 // using Y2Sharp;
 
