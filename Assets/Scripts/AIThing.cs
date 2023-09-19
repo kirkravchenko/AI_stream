@@ -26,59 +26,69 @@ using Random = System.Random;
 #pragma warning disable CS4014
 public class AIThing : MonoBehaviour
 {
-    // actions
+    #region actions
     public static event Action<string> OnTopicSelected;
     public static event Action OnSceneReload;
     public static event Action OnEpisodeStart;
     public static event Action<Character,string> OnCharacterSpeaking;
     public static event Action<float> OnDialogueLineFullyGenerated;
+    #endregion
 
-    // utilities
+    #region utilities
     Random _random = new Random();
     public static AIThing Instance;
     int retryCount = 0;
     const int maxRetries = 13;
+    #endregion
 
-    // credentials
+    #region credentials
     [SerializeField] ApiCredentials openAIkey;
     [SerializeField] ApiCredentials fakeYoukey;
     string apiKey = "Replace this with your YouTube Data API v3 key";
+    #endregion
 
-    // audio
+    #region audio
     [SerializeField] AudioSource audioSource;
     [SerializeField] public AudioClip[] audioClips; 
+    #endregion
 
-    // texts
+    #region texts
     [SerializeField] TextMeshProUGUI topicText;
     [SerializeField] TextMeshProUGUI subtitles;
-    
-    // characters
+    #endregion
+
+    #region characters
     List<Character> characters = new List<Character>();
     public GameObject[] characterPrefabs;
     public GameObject[] gt { get; private set; }
     CharacterType previousCharacterType;
     CharacterType currentCharacterType;
     public Animator speakingCharacterAnimator;
+    #endregion
 
-    // camera
+    #region camera
     [SerializeField] CinemachineVirtualCamera _cinemachineVirtualCamera;
-
-    // Network
+    #endregion
+    
+    #region Network
     HttpClient _client = new();
     HttpClientHandler _clientHandler = new HttpClientHandler();
     OpenAIApi _openAI;
     HttpClient _fakeYouClient;
-
-    // dialogues
+    #endregion
+    
+    #region dialogues
     [SerializeField, Range(150, 1200)] int conversationLength = 750; 
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
+    #endregion
 
-    // proxies
+    #region proxies
     int _proxyIndex = 0;
     string[] proxyArray = LoadProxies();
-
+    #endregion
+    
     public AIThing()
     {
         _fakeYouClient = new HttpClient(_clientHandler);
