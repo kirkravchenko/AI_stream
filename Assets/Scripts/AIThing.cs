@@ -29,100 +29,42 @@ public class AIThing : MonoBehaviour
     public static event Action<string> OnTopicSelected;
     public static event Action OnSceneReload;
     public static event Action OnEpisodeStart;
-
     public static event Action<Character,string> OnCharacterSpeaking;
-
     public static event Action<float> OnDialogueLineFullyGenerated;
-
-
     [SerializeField, Range(150, 1200)] int conversationLength = 750; 
     private Random _random = new Random();
-
     [SerializeField] ApiCredentials openAIkey;
     [SerializeField] ApiCredentials fakeYoukey;
-
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private TextMeshProUGUI topicText;
     [SerializeField] public AudioClip[] audioClips; // Put in here for a character like Gary that does not have a voice model and speaks gibberish
     public GameObject[] characterPrefabs;
-
     [SerializeField] private CinemachineVirtualCamera _cinemachineVirtualCamera;
     [SerializeField] private TextMeshProUGUI subtitles;
-
     private HttpClient _client = new();
     private OpenAIApi _openAI;
-
-
+    private string currentTopic; // Class member to store the current topic
     // Singleton instance of the AIDirector script
     public static AIThing Instance;
     public GameObject[] gt { get; private set; }
     // Reference to the speaking character's animator
     public Animator speakingCharacterAnimator;
-
-
-    //Modified By Deezaath
     private List<Character> characters = new List<Character>();
-
-    //
-    private void TeleportNarratorToSquidward()
-    {
-        GameObject narrator = GameObject.Find("narrator"); // Assuming the narrator's name in the hierarchy
-        GameObject squidward = GameObject.Find("patrick(Clone)");
-
-        if (narrator != null && squidward != null)
-        {
-            narrator.transform.position = squidward.transform.position; // Teleporting to Squidward's position
-        }
-        else
-        {
-            Debug.LogWarning("Narrator or Squidward not found!");
-        }
-    }
-    // Awake method to set up the singleton instance
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else Destroy(gameObject);
-        OnSceneReload?.Invoke();
-    }
-
+    private const int maxRetries = 13;
+    private int retryCount = 0; // Retry counter
     private CharacterType previousCharacterType;
     private CharacterType currentCharacterType;
+    private int _proxyIndex = 0;
+    private HttpClientHandler _clientHandler = new HttpClientHandler();
+    string[] proxyArray = LoadProxies();
+    private HttpClient _fakeYouClient; // This client will be used for FakeYou API calls
+    private string apiKey = "AIzaSyAcq06PcnRzdn9rWgs9_EFVvnoiw__SSvg"; // Replace this with your YouTube Data API v3 key
+    private float dialoguesAmount;
+    private float dialoguesCompleted;
 
-
-    IEnumerator LoadSceneAfterDelay(string sceneName, float delay)
+    public AIThing()
     {
-        yield return new WaitForSeconds(delay);
-        SceneManager.LoadScene(sceneName);
-    }
-
-    void Start()
-    {
-        LocationManager.OnLocationLoaded += OnLocationLoaded;
-    }
-
-    private void OnLocationLoaded(List<GameObject> spawnedCharacters, PointOfInterest pointOfInterest)
-    {
-        foreach (GameObject spawnedCharacter in spawnedCharacters)
-        {
-            if (spawnedCharacter.TryGetComponent(out Character character))
-                characters.Add(character);
-        }
-
-        previousCharacterType = CharacterType.None;
-        currentCharacterType = CharacterType.None;
-
-
-        _openAI = new OpenAIApi(openAIkey.GetKey());
-        Init();
-
-    }
-    private void OnDestroy()
-    {
-        LocationManager.OnLocationLoaded -= OnLocationLoaded;
+        _fakeYouClient = new HttpClient(_clientHandler);
     }
 
     async void Init()
@@ -164,7 +106,65 @@ public class AIThing : MonoBehaviour
         Generate(topic);
     }
 
-    private int _proxyIndex = 0;
+    void Start()
+    {
+        LocationManager.OnLocationLoaded += OnLocationLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        LocationManager.OnLocationLoaded -= OnLocationLoaded;
+    }
+
+    // Awake method to set up the singleton instance
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else Destroy(gameObject);
+        OnSceneReload?.Invoke();
+    }
+
+    private void TeleportNarratorToSquidward()
+    {
+        GameObject narrator = GameObject.Find("narrator"); // Assuming the narrator's name in the hierarchy
+        GameObject squidward = GameObject.Find("patrick(Clone)");
+
+        if (narrator != null && squidward != null)
+        {
+            narrator.transform.position = squidward.transform.position; // Teleporting to Squidward's position
+        }
+        else
+        {
+            Debug.LogWarning("Narrator or Squidward not found!");
+        }
+    }
+
+    IEnumerator LoadSceneAfterDelay(string sceneName, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene(sceneName);
+    }
+
+    private void OnLocationLoaded(List<GameObject> spawnedCharacters, PointOfInterest pointOfInterest)
+    {
+        foreach (GameObject spawnedCharacter in spawnedCharacters)
+        {
+            if (spawnedCharacter.TryGetComponent(out Character character))
+                characters.Add(character);
+        }
+
+        previousCharacterType = CharacterType.None;
+        currentCharacterType = CharacterType.None;
+
+
+        _openAI = new OpenAIApi(openAIkey.GetKey());
+        Init();
+
+    }
+
     private static string[] LoadProxies(string filename = "proxys.json")
     {
         string jsonContent = File.ReadAllText(filename);
@@ -172,8 +172,7 @@ public class AIThing : MonoBehaviour
         //return proxyArray;
         return Array.Empty<string>();
     }
-    string[] proxyArray = LoadProxies();
-    private HttpClientHandler _clientHandler = new HttpClientHandler();
+        
     private string LoadCookie()
     {
         string cookieFilePath = $"{Environment.CurrentDirectory}/Assets/Scripts/key.txt";
@@ -262,8 +261,6 @@ public class AIThing : MonoBehaviour
         return selectedTopic;
     }
 
-    
-
     private void UpdateBlacklist(List<string> blacklist, string topic, Queue<string> topics)
     {
         string blacklistPath = $"{Environment.CurrentDirectory}/Assets/Scripts/blacklist.json";
@@ -277,13 +274,6 @@ public class AIThing : MonoBehaviour
         // Write the remaining topics back to the topics file
         File.WriteAllText($"{Environment.CurrentDirectory}/Assets/Scripts/topics.json", JsonConvert.SerializeObject(topics.ToList()));
     }
-
-
-    public AIThing()
-    {
-        _fakeYouClient = new HttpClient(_clientHandler);
-    }
-    private HttpClient _fakeYouClient; // This client will be used for FakeYou API calls
 
     private IEnumerator WaitForTransition(string topic)
     {
@@ -302,7 +292,6 @@ public class AIThing : MonoBehaviour
         yield return new WaitForSeconds(15);
         Generate(topic);
     }
-
 
     IEnumerator LoadAndPlayAudioClipCoroutine(string path, Dictionary<TimeSpan, string> characterSwitches)
     {
@@ -393,7 +382,6 @@ public class AIThing : MonoBehaviour
             }
         }
     }
-    private string apiKey = "AIzaSyAcq06PcnRzdn9rWgs9_EFVvnoiw__SSvg"; // Replace this with your YouTube Data API v3 key
 
     async Task<string> SetCurrentTopicFromYouTubeLink(string characterString, string videoId)
     {
@@ -423,6 +411,7 @@ public class AIThing : MonoBehaviour
             return $"{characterNames} sing's \"{title}\""; // Return the new topic
         }
     }
+    
     void SwitchCharacter(string characterName)
     {
         if (string.IsNullOrEmpty(characterName))
@@ -454,7 +443,7 @@ public class AIThing : MonoBehaviour
             }
         }
     }
-    private string currentTopic; // Class member to store the current topic
+    
     async void Generate(string topic)
     {
         // Define dialogues at the beginning of the function
@@ -554,7 +543,7 @@ public class AIThing : MonoBehaviour
         }
 
     }
-
+    
     private string[] CheckAndGetScriptLines()
     {
         string scriptPath = "Assets/Scripts/Next.txt";
@@ -564,18 +553,20 @@ public class AIThing : MonoBehaviour
         File.WriteAllText(scriptPath, "");
         return new string[] { };
     }
+    
     private string LoadCurrentTopic()
     {
         string currentTopicPath = "Assets/Scripts/currentTopic.txt";
         if (File.Exists(currentTopicPath)) return File.ReadAllText(currentTopicPath);
         return null;
     }
+    
     private void SaveCurrentTopic(string topic)
     {
         string currentTopicPath = "Assets/Scripts/currentTopic.txt";
         if (File.Exists(currentTopicPath)) File.WriteAllText(currentTopicPath,topic);
     }
-
+    
     private string[] LoadScriptLines()
     {
         return File.ReadAllLines("Assets/Scripts/Next.txt");
@@ -741,8 +732,6 @@ public class AIThing : MonoBehaviour
 
     }
 
-    private float dialoguesAmount;
-    private float dialoguesCompleted;
     private async Task CreateTTSRequestTasksAsync(string[] text, List<Dialogue> dialogues)
     {
         dialoguesAmount = text.Length;
@@ -765,6 +754,7 @@ public class AIThing : MonoBehaviour
         
 
     }
+    
     private string GetPromptCharacters()
     {
         string formattedString = "";
@@ -781,6 +771,7 @@ public class AIThing : MonoBehaviour
         }
         return formattedString[^1..];
     }
+    
     private async Task GenerateNext(string topic)
     {
 
@@ -803,7 +794,7 @@ public class AIThing : MonoBehaviour
             Debug.Log("GPT Response:\n" + text);
         }
     }
-
+    
     private IEnumerator Speak(List<Dialogue> dialogues)
     {
         foreach (var dialogue in dialogues)
@@ -847,8 +838,6 @@ public class AIThing : MonoBehaviour
         yield return null;
     }
 
-
-
     private IEnumerator TurnToSpeaker(Transform objectTransform, Transform speakerTransform)
     {
         Vector3 direction = (speakerTransform.position - objectTransform.position).normalized;
@@ -865,8 +854,7 @@ public class AIThing : MonoBehaviour
             }
         }
     }
-    private const int maxRetries = 13;
-    private int retryCount = 0; // Retry counter
+
     private IEnumerator Speak(Dialogue d)
     {
         if (retryCount >= maxRetries) // Check if maximum retries have been reached
