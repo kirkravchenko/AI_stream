@@ -40,9 +40,24 @@
     <Analyzer Include="/Applications/Unity/Hub/Editor/2022.3.1f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets/Scripts/Character/BaseCharacter.cs" />
+     <Compile Include="Assets/Scripts/Camera/CameraManager.cs" />
+     <Compile Include="Assets/Scripts/Audio/VoiceModifier.cs" />
+     <Compile Include="Assets/Scripts/Intro/CardObject.cs" />
+     <Compile Include="Assets/Scripts/Character/CharacterManager.cs" />
+     <Compile Include="Assets/Scripts/Intro/IntroCardData.cs" />
+     <Compile Include="Assets/Scripts/NPC/NpcSpawnPoint.cs" />
+     <Compile Include="Assets/Scripts/Audio/AudioVoice.cs" />
+     <Compile Include="Assets/Scripts/Location/PointOfInterest.cs" />
+     <Compile Include="Assets/Scripts/Character/AIMovement.cs" />
+     <Compile Include="Assets/Scripts/Character/Character.cs" />
      <Compile Include="Assets/Scripts/AIThing.cs" />
-     <Compile Include="Assets/Scripts/Dialogue.cs" />
-     <Compile Include="Assets/Scripts/AIMovement.cs" />
+     <Compile Include="Assets/Scripts/APICredentials.cs" />
+     <Compile Include="Assets/Scripts/Intro/IntroCard.cs" />
+     <Compile Include="Assets/Scripts/Location/LocationManager.cs" />
+     <Compile Include="Assets/Scripts/Character/CharacterType.cs" />
+     <Compile Include="Assets/Scripts/Intro/IntroController.cs" />
+     <Compile Include="Assets/Scripts/Character/Dialogue.cs" />
     <Reference Include="UnityEngine">
         <HintPath>/Applications/Unity/Hub/Editor/2022.3.1f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>

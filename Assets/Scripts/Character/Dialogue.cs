@@ -4,7 +4,9 @@ namespace DialogueAI
 {
     public class Dialogue
     {
+        public AudioClip audioClip;
         public AudioClip clip;
+        public int id { get; set; }
         public string uuid { get; set; }
         public string character { get; set; }
         public string text { get; set; }
