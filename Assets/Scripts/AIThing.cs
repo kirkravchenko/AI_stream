@@ -177,7 +177,10 @@ public class AIThing : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
-    private void OnLocationLoaded(List<GameObject> spawnedCharacters, PointOfInterest pointOfInterest)
+    private void OnLocationLoaded(
+        List<GameObject> spawnedCharacters, 
+        PointOfInterest pointOfInterest
+    )
     {
         foreach (GameObject spawnedCharacter in spawnedCharacters)
         {
@@ -191,7 +194,6 @@ public class AIThing : MonoBehaviour
 
         _openAI = new OpenAIApi(openAiKey.GetKey());
         Init();
-
     }
 
     private static string[] LoadProxies(string filename = "proxys.json")

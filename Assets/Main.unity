@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a66e95c0bd0d247098b3dee1f9ce6667, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  openAIkey: {fileID: 0}
-  fakeYoukey: {fileID: 0}
+  openAiKey: {fileID: 11400000, guid: 50f9437b51d0e4a329ef8cdeb9962848, type: 2}
+  fakeYouKey: {fileID: 11400000, guid: 1243451d5e0a24078b9db3e332b6f9f7, type: 2}
   audioSource: {fileID: 0}
   audioClips: []
   topicText: {fileID: 0}

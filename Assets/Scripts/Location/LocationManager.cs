@@ -8,7 +8,7 @@ public class LocationManager : MonoBehaviour
 {
 
     public static event Action<PointOfInterest> OnNewPointOfInterest;
-    public static event Action<List<GameObject>,PointOfInterest> OnLocationLoaded;
+    public static event Action<List<GameObject>, PointOfInterest> OnLocationLoaded;
 
     private static LocationManager instance;
     public static LocationManager Instance { get { return instance; } }
@@ -22,6 +22,7 @@ public class LocationManager : MonoBehaviour
 
     private void Start()
     {
+        Debug.Log(">> LocationManager start()");
         ChooseLocation();
 
         LoadLocation();
@@ -34,7 +35,7 @@ public class LocationManager : MonoBehaviour
     {
         public string name;
         public PointOfInterest pointOfInterest;
-        [Range(0,100)]  public float chanceRate;
+        [Range(0, 100)] public float chanceRate;
     }
     public void ChooseLocation()
     {
@@ -79,13 +80,13 @@ public class LocationManager : MonoBehaviour
                 else spawnPoint = SelectedPoint.GetAvailableSpawnpoint();
             }
             else Debug.LogError("No character script found!");
-            GameObject newCharacter =  Instantiate(character, spawnPoint.position,spawnPoint.rotation);
+            GameObject newCharacter = Instantiate(character, spawnPoint.position, spawnPoint.rotation);
             spawnedCharacters.Add(newCharacter);
 
         }
 
         //Callback once its done.
-        OnLocationLoaded?.Invoke(spawnedCharacters,SelectedPoint);
+        OnLocationLoaded?.Invoke(spawnedCharacters, SelectedPoint);
     }
 
     public bool RandomChance(float chance = 50)
