@@ -32,7 +32,6 @@ public class AIThing : MonoBehaviour
     public static event Action OnEpisodeStart;
     public static event Action<Character,string> OnCharacterSpeaking;
     public static event Action<float> OnDialogueLineFullyGenerated;
-    [SerializeField, Range(150, 1200)] int conversationLength = 750; 
 
     // utilities
     Random _random = new Random();
@@ -71,6 +70,7 @@ public class AIThing : MonoBehaviour
     HttpClient _fakeYouClient;
 
     // dialogues
+    [SerializeField, Range(150, 1200)] int conversationLength = 750; 
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
