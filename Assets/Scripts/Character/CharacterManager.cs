@@ -7,29 +7,30 @@ public class CharacterManager : MonoBehaviour
 {
     private static CharacterManager instance;
     public static CharacterManager Instance { get { return instance; } }
-
     public GameObject[] characterPrefabs;
     private List<GameObject> spawnedCharacters;
-
     [SerializeField] private Dictionary<CharacterType, Character> charactersDictionary = new Dictionary<CharacterType, Character>();
     private PointOfInterest activePoe;
-
     public PointOfInterest GetActivePoe { get { return activePoe; } }
+
     private void Awake()
     {
         if (instance == null)
             instance = this;
         else Destroy(gameObject);
     }
+
     private void Start()
     {
         LocationManager.OnLocationLoaded += SetupCharacters;
     }
+
     private void SetupCharacters(List<GameObject> characters, PointOfInterest poe)
     {
         spawnedCharacters = characters;
         Setup(poe);
     }
+
     private void Setup(PointOfInterest poe)
     {
         activePoe = poe;
@@ -50,12 +51,9 @@ public class CharacterManager : MonoBehaviour
 
         }
 
-
         //Assign correct characters paths to created paths of selected Point of Interest
-
         foreach (PointOfInterest.PredeterminedPath predeterminedPath in poe.predeterminedPaths)
         {
-
             for (int i = 0; i < charactersDictionary.Count; i++)
             {
                 if (charactersDictionary.ContainsKey(predeterminedPath.character))
@@ -66,12 +64,9 @@ public class CharacterManager : MonoBehaviour
                     break;
                 }
             }
-
-
-
         }
-
     }
+
     public void SetAudioDistortionFilterForSpeakingCharacter(VoiceModifier.DistortionPreset distortionPreset = VoiceModifier.DistortionPreset.Normal)
     {
         foreach (Character character in charactersDictionary.Values)
@@ -88,6 +83,7 @@ public class CharacterManager : MonoBehaviour
 
         }
     }
+
     public void SetAudioReverbFilterForSpeakingCharacter(VoiceModifier.ReverbPreset reverbPreset = VoiceModifier.ReverbPreset.Default)
     {
         foreach (Character character in charactersDictionary.Values)
@@ -100,10 +96,9 @@ public class CharacterManager : MonoBehaviour
                     return;
                 }
             }
-
-
         }
     }
+
     public void EnableLowPassFilterForSpeakingCharacter()
     {
         foreach (Character character in charactersDictionary.Values)
@@ -116,8 +111,6 @@ public class CharacterManager : MonoBehaviour
                     return;
                 }
             }
-
-
         }
     }
 
@@ -126,6 +119,7 @@ public class CharacterManager : MonoBehaviour
         foreach(Character character in charactersDictionary.Values)
             character.isSpeaking = false;
     }
+
     public void ResetCharactersVoiceFilters()
     {
         foreach (Character character in charactersDictionary.Values)
@@ -143,6 +137,7 @@ public class CharacterManager : MonoBehaviour
             }
         }
     }
+
     public Character GetSpeakingCharacter()
     {
         foreach (Character character in charactersDictionary.Values)
@@ -154,6 +149,7 @@ public class CharacterManager : MonoBehaviour
         }
         return null;
     }
+
     public Character GetCharacterByName(string name)
     {
         foreach (Character character in charactersDictionary.Values)
@@ -162,6 +158,7 @@ public class CharacterManager : MonoBehaviour
         }
         return null;
     }
+
     public CharacterType GetCharacterTypeByName(string name)
     {
         Character character = GetCharacterByName(name);

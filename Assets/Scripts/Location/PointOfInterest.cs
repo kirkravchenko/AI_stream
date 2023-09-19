@@ -49,6 +49,7 @@ public class PointOfInterest : MonoBehaviour
     public enum PointName
     {
         None,
+        Test_1,
         Restaurant,
         Restaurant_Outside,
         Restaurant_Kitchen,
@@ -66,8 +67,8 @@ public class PointOfInterest : MonoBehaviour
 
     public Transform GetAvailableSpawnpoint()
     {
-        if(avialableSpawnPoints.Count == 0)
-            return normalSpawnPoints[Random.Range(0,normalSpawnPoints.Length)];
+        if (avialableSpawnPoints.Count == 0)
+            return normalSpawnPoints[Random.Range(0, normalSpawnPoints.Length)];
 
         Transform spawnPoint = avialableSpawnPoints[Random.Range(0,avialableSpawnPoints.Count)];
         avialableSpawnPoints.Remove(spawnPoint);

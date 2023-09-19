@@ -63,8 +63,8 @@ public class LocationManager : MonoBehaviour
 
     public void LoadLocation()
     {
-        //Get chosen location
-        //setup location, spawn characters
+        // get chosen location
+        // setup location, spawn characters
         List<GameObject> charactersToSpawn = CharacterManager.Instance.characterPrefabs.ToList();
         List<GameObject> spawnedCharacters = new List<GameObject>();
         foreach (GameObject character in charactersToSpawn)
@@ -84,8 +84,12 @@ public class LocationManager : MonoBehaviour
             spawnedCharacters.Add(newCharacter);
 
         }
-
+        Debug.Log(">> before OnLocationLoaded?.Invoke()");
         //Callback once its done.
+        // Debug.Log(OnLocationLoaded?);
+        Debug.Log(">> OnLocationLoaded == null ");
+        Debug.Log(OnLocationLoaded == null);
+
         OnLocationLoaded?.Invoke(spawnedCharacters, SelectedPoint);
     }
 

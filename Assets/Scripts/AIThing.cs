@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.Video;
@@ -119,7 +120,7 @@ public class AIThing : MonoBehaviour
        
         if (topics.Count == 0)
         {
-            ShowIntroAndReloadScene("1.1", 5f);
+            ShowIntroAndReloadScene("Main", 5f);
             return;
         }
 
@@ -137,6 +138,7 @@ public class AIThing : MonoBehaviour
 
     void Start()
     {
+        Debug.Log(">>> AIThing Start()");
         LocationManager.OnLocationLoaded += OnLocationLoaded;
     }
 
@@ -182,6 +184,7 @@ public class AIThing : MonoBehaviour
         PointOfInterest pointOfInterest
     )
     {
+        Debug.Log(">> OnLocationLoaded");
         foreach (GameObject spawnedCharacter in spawnedCharacters)
         {
             if (spawnedCharacter.TryGetComponent(out Character character))
@@ -206,7 +209,7 @@ public class AIThing : MonoBehaviour
         
     private string LoadCookie()
     {
-        string cookieFilePath = $"{Environment.CurrentDirectory}/Assets/Scripts/key.txt";
+        string cookieFilePath = $"{Environment.CurrentDirectory}/Assets/Scripts/Resources/key.txt";
         if (!File.Exists(cookieFilePath))
             File.WriteAllText(cookieFilePath, "");
 
@@ -228,7 +231,7 @@ public class AIThing : MonoBehaviour
         var cookieParts = cookieData.Split(';');
         string cookie = cookieParts[0].Replace("session=", "").Replace("\"", "");
 
-        File.WriteAllText($"{Environment.CurrentDirectory}/Assets/Scripts/key.txt", cookie);
+        File.WriteAllText($"{Environment.CurrentDirectory}/Assets/Scripts/Resources/key.txt", cookie);
 
         return cookie;
     }
@@ -266,7 +269,7 @@ public class AIThing : MonoBehaviour
 
     private List<string> LoadBlacklist()
     {
-        string blacklistPath = $"{Environment.CurrentDirectory}/Assets/Scripts/blacklist.json";
+        string blacklistPath = $"{Environment.CurrentDirectory}/Assets/Scripts/Resources/blacklist.json";
         if (File.Exists(blacklistPath))
         {
             return JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(blacklistPath));
@@ -278,7 +281,7 @@ public class AIThing : MonoBehaviour
     private Queue<string> LoadTopics()
     {
         return new Queue<string>(JsonConvert.DeserializeObject<List<string>>(
-            File.ReadAllText($"{Environment.CurrentDirectory}/Assets/Scripts/topics.json")));
+            File.ReadAllText($"{Environment.CurrentDirectory}/Assets/Scripts/Resources/topics.json")));
     }
 
     private void ShowIntroAndReloadScene(string sceneName, float delay)
@@ -294,7 +297,7 @@ public class AIThing : MonoBehaviour
 
     private void UpdateBlacklist(List<string> blacklist, string topic, Queue<string> topics)
     {
-        string blacklistPath = $"{Environment.CurrentDirectory}/Assets/Scripts/blacklist.json";
+        string blacklistPath = $"{Environment.CurrentDirectory}/Assets/Scripts/Resources/blacklist.json";
 
         if (!blacklist.Contains(topic))
         {
@@ -303,7 +306,7 @@ public class AIThing : MonoBehaviour
         }
 
         // Write the remaining topics back to the topics file
-        File.WriteAllText($"{Environment.CurrentDirectory}/Assets/Scripts/topics.json", JsonConvert.SerializeObject(topics.ToList()));
+        File.WriteAllText($"{Environment.CurrentDirectory}/Assets/Scripts/Resources/topics.json", JsonConvert.SerializeObject(topics.ToList()));
     }
 
     private IEnumerator WaitForTransition(string topic)
@@ -710,7 +713,7 @@ public class AIThing : MonoBehaviour
 
             // Set up the CookieContainer
             CookieContainer cookieContainer = new CookieContainer();
-            string cookieFilePath = $"{Environment.CurrentDirectory}/Assets/Scripts/key.txt";
+            string cookieFilePath = $"{Environment.CurrentDirectory}/Assets/Scripts/Resources/key.txt";
             string cookieData = File.Exists(cookieFilePath) ? File.ReadAllText(cookieFilePath) : "";
             Debug.Log(">> cookieData " + cookieData);
             cookieContainer.Add(new Uri("https://api.fakeyou.com"), new Cookie("session", cookieData));
