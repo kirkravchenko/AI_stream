@@ -41,6 +41,14 @@ public class AIThing : MonoBehaviour
     [SerializeField] VideoClip[] videoClips;
     HttpClient _client = new();
     OpenAIApi _openAI;
+    string previousCharacter;
+    string currentCharacter;
+    int _proxyIndex = 0;
+    [SerializeField] string[] proxyArray;
+    HttpClientHandler _clientHandler = new HttpClientHandler();
+    // This client will be used for FakeYou API calls
+    HttpClient _fakeYouClient; 
+    Dictionary<string, GameObject> characters = new Dictionary<string, GameObject>();
 
     // public variables
     [SerializeField] public AudioClip[] audioClips; 
@@ -50,7 +58,14 @@ public class AIThing : MonoBehaviour
     public static AIThing Instance;
     // Reference to the speaking character's animator
     public Animator speakingCharacterAnimator;
-    
+    public GameObject[] gameObjects;
+
+    // public cosntructor
+    public AIThing()
+    {
+        _fakeYouClient = new HttpClient(_clientHandler);
+    }
+
     private void TeleportCharacters()
     {
         // Map each spawn point group to a Squidward location
@@ -78,7 +93,7 @@ public class AIThing : MonoBehaviour
 
         int index = 0;
 
-        foreach (GameObject character in gt)
+        foreach (GameObject character in gameObjects)
         {
             // If the character is Squidward, teleport him to his special location
             if (character.name == "squidward")
@@ -99,6 +114,7 @@ public class AIThing : MonoBehaviour
         }
     }
     // Awake method to set up the singleton instance
+
     private void Awake()
     {
         if (Instance == null)
@@ -106,7 +122,7 @@ public class AIThing : MonoBehaviour
             Instance = this;
         }
     }
-    private string previousCharacter;
+
     // Call this method when a character starts speaking
     public void CharacterStartedSpeaking(Animator characterAnimator)
     {
@@ -176,7 +192,6 @@ public class AIThing : MonoBehaviour
         previousCharacter = "";
         currentCharacter = "";
     }
-    private string currentCharacter;
     async void Init()
     {
         string cookie = LoadCookie();
@@ -215,10 +230,6 @@ public class AIThing : MonoBehaviour
         // Generate the dialogue
         Generate(topic);
     }
-
-    private int _proxyIndex = 0;
-    [SerializeField] private string[] proxyArray;
-    private HttpClientHandler _clientHandler = new HttpClientHandler();
     private string LoadCookie()
     {
         string cookieFilePath = $"{Environment.CurrentDirectory}\\Assets\\Scripts\\key.txt";
@@ -269,6 +280,7 @@ public class AIThing : MonoBehaviour
         _fakeYouClient = new HttpClient(handler);  // Create _fakeYouClient with the handler
         _fakeYouClient.DefaultRequestHeaders.Add("Accept", "application/json");
     }
+    
     private async Task CheckCookieValidity(HttpClient client)
     {
         var checkKey = await client.GetAsync("https://api.fakeyou.com/v1/billing/active_subscriptions");
@@ -325,13 +337,6 @@ public class AIThing : MonoBehaviour
         }
     }
 
-
-    public AIThing()
-    {
-        _fakeYouClient = new HttpClient(_clientHandler);
-    }
-    private HttpClient _fakeYouClient; // This client will be used for FakeYou API calls
-
     private IEnumerator WaitForTransition(string topic)
     {
         while (videoPlayer.isPlaying)
@@ -347,7 +352,7 @@ public class AIThing : MonoBehaviour
         yield return new WaitForSeconds(15);
         Generate(topic);
     }
-    private Dictionary<string, GameObject> characters = new Dictionary<string, GameObject>();
+
     IEnumerator LoadAndPlayAudioClipCoroutine(string path)
     {
         using (var uwr = UnityWebRequestMultimedia.GetAudioClip($"file:///{path}", AudioType.MPEG)) // Unity does not support MP3 for this method
@@ -380,7 +385,7 @@ public class AIThing : MonoBehaviour
                     Debug.Log("Camera is now following: " + currentCharacter);  // Debug statement
                     if (subtitles != null)
                         subtitles.text = "*sings*";
-                    foreach (GameObject obj in gt)
+                    foreach (GameObject obj in gameObjects)
                     {
                         if (obj != null && obj != character && obj.name != "karen")
                         {
@@ -722,8 +727,6 @@ public class AIThing : MonoBehaviour
         yield return null;
     }
 
-    public GameObject[] gt;
-
     private IEnumerator TurnToSpeaker(Transform objectTransform, Transform speakerTransform)
     {
         Vector3 direction = (speakerTransform.position - objectTransform.position).normalized;
@@ -797,9 +800,9 @@ public class AIThing : MonoBehaviour
 
             yield return new WaitForSeconds(1);
 
-            if (gt.Length > 0)
+            if (gameObjects.Length > 0)
             {
-                foreach (GameObject obj in gt)
+                foreach (GameObject obj in gameObjects)
                 {
                     if (obj != null && obj != character && obj.name != "karen")
                     {
