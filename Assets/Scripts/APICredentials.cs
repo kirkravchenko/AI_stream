@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New API Credentials", menuName = "AiSponge/Create new API Key")]
+[CreateAssetMenu(fileName = "APIKey", menuName = "API key")]
 public class ApiCredentials : ScriptableObject
 {
     [Space(10),Header("    [ - - - SENSITIVE DATA - - - ]\n\n NEVER share your API keys or other credentials and keep it private! \n" +

@@ -42,8 +42,8 @@ public class AIThing : MonoBehaviour
     #endregion
 
     #region credentials
-    [SerializeField] ApiCredentials openAIkey;
-    [SerializeField] ApiCredentials fakeYoukey;
+    [SerializeField] ApiCredentials openAiKey;
+    [SerializeField] ApiCredentials fakeYouKey;
     string apiKey = "Replace this with your YouTube Data API v3 key";
     #endregion
 
@@ -70,7 +70,7 @@ public class AIThing : MonoBehaviour
     [SerializeField] CinemachineVirtualCamera _cinemachineVirtualCamera;
     #endregion
     
-    #region Network
+    #region network
     HttpClient _client = new();
     HttpClientHandler _clientHandler = new HttpClientHandler();
     OpenAIApi _openAI;
@@ -88,14 +88,16 @@ public class AIThing : MonoBehaviour
     int _proxyIndex = 0;
     string[] proxyArray = LoadProxies();
     #endregion
-    
+
     public AIThing()
     {
+        Debug.Log(">>> AIThing ctor");
         _fakeYouClient = new HttpClient(_clientHandler);
     }
 
     async void Init()
     {
+        Debug.Log(">> Init started");
         string cookie = LoadCookie();
 
         if (cookie == "")
@@ -187,15 +189,15 @@ public class AIThing : MonoBehaviour
         currentCharacterType = CharacterType.None;
 
 
-        _openAI = new OpenAIApi(openAIkey.GetKey());
+        _openAI = new OpenAIApi(openAiKey.GetKey());
         Init();
 
     }
 
     private static string[] LoadProxies(string filename = "proxys.json")
     {
-        string jsonContent = File.ReadAllText(filename);
-        string[] proxyArray = JsonConvert.DeserializeObject<string[]>(jsonContent);
+        // string jsonContent = File.ReadAllText(filename);
+        // string[] proxyArray = JsonConvert.DeserializeObject<string[]>(jsonContent);
         //return proxyArray;
         return Array.Empty<string>();
     }
@@ -213,8 +215,8 @@ public class AIThing : MonoBehaviour
     {
         var loginDetails = new
         {
-            username_or_email = fakeYoukey.GetUsername(),
-            password = fakeYoukey.GetPassword()
+            username_or_email = fakeYouKey.GetUsername(),
+            password = fakeYouKey.GetPassword()
         };
 
         var response = await _client.PostAsync("https://api.fakeyou.com/login",
