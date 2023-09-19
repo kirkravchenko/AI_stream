@@ -22,37 +22,35 @@ using Y2Sharp;
 #pragma warning disable CS4014
 public class AIThing : MonoBehaviour
 {
-    private Random _random = new Random();
-    [SerializeField] private Transform[] KrustyKrab;
-    [SerializeField] private Transform[] ConchStreet;
-    [SerializeField] private Transform[] OutsideKrustyKrab;
-    [SerializeField] private Transform[] SquidwardLocations;
-    // Should probably change this to a safer method of storing the keys
-    [SerializeField] private string openAIKey;
-    [SerializeField] private string fakeYouUsernameOrEMail;
-    [SerializeField] private string fakeYouPassword;
+    // private variables
+    Random _random = new Random();
+    [SerializeField] Transform[] KrustyKrab;
+    [SerializeField] Transform[] ConchStreet;
+    [SerializeField] Transform[] OutsideKrustyKrab;
+    [SerializeField] Transform[] SquidwardLocations;
+    // TODO: Should probably change this to a safer method of storing the keys
+    [SerializeField] string openAIKey;
+    [SerializeField] string fakeYouUsernameOrEMail;
+    [SerializeField] string fakeYouPassword;
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] TextMeshProUGUI topicText;
+    // TODO: Put in here for a character like Gary that does not have a voice model and speaks gibberish
+    [SerializeField] CinemachineVirtualCamera _cinemachineVirtualCamera;
+    [SerializeField] TextMeshProUGUI subtitles;
+    [SerializeField] VideoPlayer videoPlayer;
+    [SerializeField] VideoClip[] videoClips;
+    HttpClient _client = new();
+    OpenAIApi _openAI;
 
-    [SerializeField] private AudioSource audioSource;
-    [SerializeField] private TextMeshProUGUI topicText;
-    [SerializeField] public AudioClip[] audioClips; // Put in here for a character like Gary that does not have a voice model and speaks gibberish
-
-
-    [SerializeField] private CinemachineVirtualCamera _cinemachineVirtualCamera;
-    [SerializeField] private TextMeshProUGUI subtitles;
-    [SerializeField] private VideoPlayer videoPlayer;
-
-    [SerializeField] private VideoClip[] videoClips;
-    private HttpClient _client = new();
-    private OpenAIApi _openAI;
-
+    // public variables
+    [SerializeField] public AudioClip[] audioClips; 
     public VideoClip clipToPlay;
     public VideoClip clip;
-
-    // Singleton instance of the AIDirector script
+    // Singleton instance of the AIThing script
     public static AIThing Instance;
-
     // Reference to the speaking character's animator
     public Animator speakingCharacterAnimator;
+    
     private void TeleportCharacters()
     {
         // Map each spawn point group to a Squidward location
