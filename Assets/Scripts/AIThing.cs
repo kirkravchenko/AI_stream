@@ -26,41 +26,58 @@ using Random = System.Random;
 #pragma warning disable CS4014
 public class AIThing : MonoBehaviour
 {
+    // actions
     public static event Action<string> OnTopicSelected;
     public static event Action OnSceneReload;
     public static event Action OnEpisodeStart;
     public static event Action<Character,string> OnCharacterSpeaking;
     public static event Action<float> OnDialogueLineFullyGenerated;
     [SerializeField, Range(150, 1200)] int conversationLength = 750; 
-    private Random _random = new Random();
+
+    // utilities
+    Random _random = new Random();
+    public static AIThing Instance;
+    int retryCount = 0;
+    const int maxRetries = 13;
+
+    // credentials
     [SerializeField] ApiCredentials openAIkey;
     [SerializeField] ApiCredentials fakeYoukey;
-    [SerializeField] private AudioSource audioSource;
-    [SerializeField] private TextMeshProUGUI topicText;
-    [SerializeField] public AudioClip[] audioClips; // Put in here for a character like Gary that does not have a voice model and speaks gibberish
+    string apiKey = "Replace this with your YouTube Data API v3 key";
+
+    // audio
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] public AudioClip[] audioClips; 
+
+    // texts
+    [SerializeField] TextMeshProUGUI topicText;
+    [SerializeField] TextMeshProUGUI subtitles;
+    
+    // characters
+    List<Character> characters = new List<Character>();
     public GameObject[] characterPrefabs;
-    [SerializeField] private CinemachineVirtualCamera _cinemachineVirtualCamera;
-    [SerializeField] private TextMeshProUGUI subtitles;
-    private HttpClient _client = new();
-    private OpenAIApi _openAI;
-    private string currentTopic; // Class member to store the current topic
-    // Singleton instance of the AIDirector script
-    public static AIThing Instance;
     public GameObject[] gt { get; private set; }
-    // Reference to the speaking character's animator
+    CharacterType previousCharacterType;
+    CharacterType currentCharacterType;
     public Animator speakingCharacterAnimator;
-    private List<Character> characters = new List<Character>();
-    private const int maxRetries = 13;
-    private int retryCount = 0; // Retry counter
-    private CharacterType previousCharacterType;
-    private CharacterType currentCharacterType;
-    private int _proxyIndex = 0;
-    private HttpClientHandler _clientHandler = new HttpClientHandler();
+
+    // camera
+    [SerializeField] CinemachineVirtualCamera _cinemachineVirtualCamera;
+
+    // Network
+    HttpClient _client = new();
+    HttpClientHandler _clientHandler = new HttpClientHandler();
+    OpenAIApi _openAI;
+    HttpClient _fakeYouClient;
+
+    // dialogues
+    string currentTopic;
+    float dialoguesAmount;
+    float dialoguesCompleted;
+
+    // proxies
+    int _proxyIndex = 0;
     string[] proxyArray = LoadProxies();
-    private HttpClient _fakeYouClient; // This client will be used for FakeYou API calls
-    private string apiKey = "AIzaSyAcq06PcnRzdn9rWgs9_EFVvnoiw__SSvg"; // Replace this with your YouTube Data API v3 key
-    private float dialoguesAmount;
-    private float dialoguesCompleted;
 
     public AIThing()
     {
