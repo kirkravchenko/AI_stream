@@ -20,6 +20,12 @@ namespace DialogueAI
         public string inference_job_token { get; set; }
     }
 
+    public class SpeakResponse2
+    {
+        public string status { get; set; }
+        public string audioPath { get; set; }
+    }
+
     //taken from https://cdn.discordapp.com/attachments/947792035040088104/993046615239692288/FakeYou.cs
     public class GetResponse
     {

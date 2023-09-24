@@ -31,7 +31,7 @@ public class AIThing : MonoBehaviour
     public static event Action<string> OnTopicSelected;
     public static event Action OnSceneReload;
     public static event Action OnEpisodeStart;
-    public static event Action<Character,string> OnCharacterSpeaking;
+    public static event Action<Character, string> OnCharacterSpeaking;
     public static event Action<float> OnDialogueLineFullyGenerated;
     #endregion
 
@@ -50,7 +50,7 @@ public class AIThing : MonoBehaviour
 
     #region audio
     [SerializeField] AudioSource audioSource;
-    [SerializeField] public AudioClip[] audioClips; 
+    [SerializeField] public AudioClip[] audioClips;
     #endregion
 
     #region texts
@@ -70,16 +70,16 @@ public class AIThing : MonoBehaviour
     #region camera
     [SerializeField] CinemachineVirtualCamera _cinemachineVirtualCamera;
     #endregion
-    
+
     #region network
     HttpClient _client = new();
     HttpClientHandler _clientHandler = new HttpClientHandler();
     OpenAIApi _openAI;
     HttpClient _fakeYouClient;
     #endregion
-    
+
     #region dialogues
-    [SerializeField, Range(150, 1200)] int conversationLength = 750; 
+    [SerializeField, Range(150, 1200)] int conversationLength = 750;
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
@@ -92,8 +92,40 @@ public class AIThing : MonoBehaviour
 
     public AIThing()
     {
-        Debug.Log(">>> AIThing ctor");
         _fakeYouClient = new HttpClient(_clientHandler);
+    }
+
+    private async Task CreateTTSRequest2(List<string> audioPath)
+    {
+        var text = "текст прямо из вижуал студио кода. Красава, Кирюха, растешь каждый день";
+        var obj = new 
+        {
+            text = text,
+            model = "dubynin"
+        };
+        var content = new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
+        var response = await _fakeYouClient.PostAsync("http://127.0.0.1:8000/tts/", content);
+        var responseString = await response.Content.ReadAsStringAsync();
+        responseString = responseString.Replace("/private/", "file:///");
+        var jsonOutput = JsonConvert.DeserializeObject<SpeakResponse2>(responseString);
+        audioPath.Add(jsonOutput.audioPath);
+    }
+
+    IEnumerator SpeakPlease(string audioPath)
+    {
+        using (
+                var uwr = UnityWebRequestMultimedia
+                    .GetAudioClip(audioPath, AudioType.WAV)
+            )
+        {
+            yield return uwr.SendWebRequest();
+            AudioClip downloadedClip = DownloadHandlerAudioClip.GetContent(uwr);
+            GameObject sphereDoomer = characterPrefabs[0];
+            AudioSource audioSource = sphereDoomer.GetComponent<AudioSource>();
+            audioSource.enabled = true;
+            audioSource.clip = downloadedClip;
+            audioSource.Play();
+        }
     }
 
     async void Init()
@@ -117,10 +149,14 @@ public class AIThing : MonoBehaviour
         Queue<string> topics = LoadTopics();
 
         // If there are no topics, play a video clip and restart in 10 seconds
-       
+        
+        List<string> audioPaths = new List<string>();
+        await CreateTTSRequest2(audioPaths);
+        StartCoroutine(SpeakPlease(audioPaths[0]));
+
         if (topics.Count == 0)
         {
-            ShowIntroAndReloadScene("Main", 5f);
+            ShowIntroAndReloadScene("Main", 8f);
             return;
         }
 
@@ -138,7 +174,6 @@ public class AIThing : MonoBehaviour
 
     void Start()
     {
-        Debug.Log(">>> AIThing Start()");
         LocationManager.OnLocationLoaded += OnLocationLoaded;
     }
 
@@ -180,7 +215,7 @@ public class AIThing : MonoBehaviour
     }
 
     private void OnLocationLoaded(
-        List<GameObject> spawnedCharacters, 
+        List<GameObject> spawnedCharacters,
         PointOfInterest pointOfInterest
     )
     {
@@ -206,7 +241,7 @@ public class AIThing : MonoBehaviour
         //return proxyArray;
         return Array.Empty<string>();
     }
-        
+
     private string LoadCookie()
     {
         string cookieFilePath = $"{Environment.CurrentDirectory}/Assets/Scripts/Resources/key.txt";
@@ -445,7 +480,7 @@ public class AIThing : MonoBehaviour
             return $"{characterNames} sing's \"{title}\""; // Return the new topic
         }
     }
-    
+
     void SwitchCharacter(string characterName)
     {
         if (string.IsNullOrEmpty(characterName))
@@ -477,15 +512,15 @@ public class AIThing : MonoBehaviour
             }
         }
     }
-    
+
     async void Generate(string topic)
     {
         // Define dialogues at the beginning of the function
         List<Dialogue> dialogues = new List<Dialogue>();
 
         string currentTopic = LoadCurrentTopic();
-        
-        
+
+
 
         // Check f the topic contains a YouTube lin
         if (topic.Contains("sings https://www.youtube.com/watch?v="))
@@ -505,7 +540,7 @@ public class AIThing : MonoBehaviour
                 characterSwitches.Add(TimeSpan.FromSeconds(int.Parse(characterAndTimeParts[i + 1])), characterAndTimeParts[i]);
             }
             OnDialogueLineFullyGenerated?.Invoke(-1);
-            
+
 
             try
             {
@@ -537,13 +572,13 @@ public class AIThing : MonoBehaviour
                 text = "*sings*",
                 character = characterAndTimeParts[0].ToLower()
             });
-           
+
             if (subtitles != null)
                 subtitles.text = "*sings*";
 
             currentCharacterType = CharacterManager.Instance.GetCharacterTypeByName(characterAndTimeParts[0].ToLower());
             Debug.Log("Singing character: " + currentCharacterType);
-            
+
             StartCoroutine(LoadAndPlayAudioClipCoroutine(audioFilePath, characterSwitches));
         }
         else
@@ -560,7 +595,7 @@ public class AIThing : MonoBehaviour
             {
                 SaveCurrentTopic(topic);
             }
-            
+
             Debug.Log(">> BEFORE the first invocation of GenerateNext " + System.Environment.CurrentManagedThreadId);
             GenerateNext(topic);
             Debug.Log(">> AFTER the first invocation of GenerateNext " + System.Environment.CurrentManagedThreadId);
@@ -577,7 +612,7 @@ public class AIThing : MonoBehaviour
         }
 
     }
-    
+
     private string[] CheckAndGetScriptLines()
     {
         string scriptPath = "Assets/Scripts/Next.txt";
@@ -587,20 +622,20 @@ public class AIThing : MonoBehaviour
         File.WriteAllText(scriptPath, "");
         return new string[] { };
     }
-    
+
     private string LoadCurrentTopic()
     {
         string currentTopicPath = "Assets/Scripts/currentTopic.txt";
         if (File.Exists(currentTopicPath)) return File.ReadAllText(currentTopicPath);
         return null;
     }
-    
+
     private void SaveCurrentTopic(string topic)
     {
         string currentTopicPath = "Assets/Scripts/currentTopic.txt";
-        if (File.Exists(currentTopicPath)) File.WriteAllText(currentTopicPath,topic);
+        if (File.Exists(currentTopicPath)) File.WriteAllText(currentTopicPath, topic);
     }
-    
+
     private string[] LoadScriptLines()
     {
         return File.ReadAllLines("Assets/Scripts/Next.txt");
@@ -627,7 +662,7 @@ public class AIThing : MonoBehaviour
         character = "";
 
 
-        Character assignedCharacter =null;
+        Character assignedCharacter = null;
         //Make a exception for narrator as we dont spawn him like other characters
         if (line.StartsWith("French Narrator:"))
         {
@@ -674,10 +709,10 @@ public class AIThing : MonoBehaviour
                 }
             }
         }
-        if(!string.IsNullOrEmpty(textToSay))
+        if (!string.IsNullOrEmpty(textToSay))
         {
             Debug.Log($"<color=#60be92><b>[NEW DIALOGUE]</b></color> <b>{character.FirstCharacterToUpper()}</b> : {textToSay}");
-          //  OnNewDialogueLine?.Invoke(assignedCharacter,textToSay);
+            //  OnNewDialogueLine?.Invoke(assignedCharacter,textToSay);
         }
 
 
@@ -785,10 +820,10 @@ public class AIThing : MonoBehaviour
             }
         }
 
-        
+
 
     }
-    
+
     private string GetPromptCharacters()
     {
         string formattedString = "";
@@ -805,7 +840,7 @@ public class AIThing : MonoBehaviour
         }
         return formattedString[^1..];
     }
-    
+
     private async Task GenerateNext(string topic)
     {
 
@@ -828,7 +863,7 @@ public class AIThing : MonoBehaviour
             Debug.Log("GPT Response:\n" + text);
         }
     }
-    
+
     private IEnumerator Speak(List<Dialogue> dialogues)
     {
         foreach (var dialogue in dialogues)
@@ -980,7 +1015,7 @@ public class AIThing : MonoBehaviour
                 //d.character.
                 Character character = CharacterManager.Instance.GetCharacterByName(d.character);
                 CharacterManager.Instance.ResetSpeakingFlagForCharacters();
-               
+
                 //Make sure audioSource is assigned
                 if (!audioSource)
                 {
@@ -1002,7 +1037,7 @@ public class AIThing : MonoBehaviour
                     }
                     else
                     {
-                       
+
                         audioSource.clip = selectedClip;
                         audioSource.bypassEffects = true;
                         audioSource.bypassListenerEffects = true;
@@ -1015,7 +1050,7 @@ public class AIThing : MonoBehaviour
                 else
                 {
                     IntroController.Instance.IntroNarrator(d.text);
-                    
+
                     //Use old implementation if something goes wrong..
                     audioSource.clip = downloadedClip;
                     audioSource.bypassEffects = true;

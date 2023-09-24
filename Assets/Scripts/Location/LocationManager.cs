@@ -85,9 +85,8 @@ public class LocationManager : MonoBehaviour
 
         }
         Debug.Log(">> before OnLocationLoaded?.Invoke()");
+        Debug.Log(">> OnLocationLoaded == null");
         //Callback once its done.
-        // Debug.Log(OnLocationLoaded?);
-        Debug.Log(">> OnLocationLoaded == null ");
         Debug.Log(OnLocationLoaded == null);
 
         OnLocationLoaded?.Invoke(spawnedCharacters, SelectedPoint);

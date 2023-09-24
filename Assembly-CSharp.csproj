@@ -720,17 +720,17 @@
     <Reference Include="Unity.VisualScripting.Core">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.VisualScripting.Core.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEditor.UI">
+        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualScripting.Core.Editor">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.VisualScripting.Core.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEditor.UI">
-        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Rider.Editor">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="NuGetForUnity">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/NuGetForUnity.dll</HintPath>
@@ -764,6 +764,9 @@
     </Reference>
     <Reference Include="Unity.AI.Navigation.Updater">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.AI.Navigation.Updater.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Scripting.Python.Editor">
+        <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.Scripting.Python.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualScripting.State.Editor">
         <HintPath>/Users/kirill_kravchenko/Developer/AI_stream/Library/ScriptAssemblies/Unity.VisualScripting.State.Editor.dll</HintPath>
