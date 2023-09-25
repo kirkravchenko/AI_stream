@@ -22,9 +22,7 @@ public class LocationManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log(">> LocationManager start()");
         ChooseLocation();
-
         LoadLocation();
     }
     [SerializeField] Points[] points;
@@ -84,8 +82,6 @@ public class LocationManager : MonoBehaviour
             spawnedCharacters.Add(newCharacter);
 
         }
-        Debug.Log(">> before OnLocationLoaded?.Invoke()");
-        Debug.Log(">> OnLocationLoaded == null");
         //Callback once its done.
         Debug.Log(OnLocationLoaded == null);
 

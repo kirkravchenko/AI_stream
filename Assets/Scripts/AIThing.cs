@@ -89,7 +89,13 @@ public class AIThing : MonoBehaviour
     int _proxyIndex = 0;
     string[] proxyArray = LoadProxies();
     #endregion
-
+    
+    #region paths
+    string _currentTopicPath = 
+        "Assets/Scripts/Resources/currentTopic.txt";
+    string _scriptTextPath = "Assets/Scripts/Resources/next.txt";
+    #endregion
+    
     public AIThing()
     {
         _fakeYouClient = new HttpClient(_clientHandler);
@@ -130,7 +136,6 @@ public class AIThing : MonoBehaviour
 
     async void Init()
     {
-        Debug.Log(">> Init started");
         string cookie = LoadCookie();
 
         if (cookie == "")
@@ -147,16 +152,15 @@ public class AIThing : MonoBehaviour
 
         // Pick a random topic
         Queue<string> topics = LoadTopics();
+        
+        // List<string> audioPaths = new List<string>();
+        // await CreateTTSRequest2(audioPaths);
+        // StartCoroutine(SpeakPlease(audioPaths[0]));
 
         // If there are no topics, play a video clip and restart in 10 seconds
-        
-        List<string> audioPaths = new List<string>();
-        await CreateTTSRequest2(audioPaths);
-        StartCoroutine(SpeakPlease(audioPaths[0]));
-
         if (topics.Count == 0)
         {
-            ShowIntroAndReloadScene("Main", 8f);
+            ShowIntroAndReloadScene("Main", 10f);
             return;
         }
 
@@ -219,7 +223,6 @@ public class AIThing : MonoBehaviour
         PointOfInterest pointOfInterest
     )
     {
-        Debug.Log(">> OnLocationLoaded");
         foreach (GameObject spawnedCharacter in spawnedCharacters)
         {
             if (spawnedCharacter.TryGetComponent(out Character character))
@@ -276,7 +279,6 @@ public class AIThing : MonoBehaviour
         var handler = new HttpClientHandler();
         handler.CookieContainer = new CookieContainer();
         handler.CookieContainer.Add(new Uri("https://api.fakeyou.com"), new Cookie("session", cookie));
-        Debug.Log(">> proxyArray.Length " + proxyArray.Length);
         if (proxyArray.Length > 0)
         {
             // Set proxy for HttpClientHandler only if proxies are available
@@ -315,8 +317,13 @@ public class AIThing : MonoBehaviour
 
     private Queue<string> LoadTopics()
     {
-        return new Queue<string>(JsonConvert.DeserializeObject<List<string>>(
-            File.ReadAllText($"{Environment.CurrentDirectory}/Assets/Scripts/Resources/topics.json")));
+        var topicsPath = $"{Environment.CurrentDirectory}" + 
+                        "/Assets/Scripts/Resources/topics.json";
+        return new Queue<string>(
+                    JsonConvert.DeserializeObject<List<string>>(
+                    File.ReadAllText(topicsPath)
+                )
+            );
     }
 
     private void ShowIntroAndReloadScene(string sceneName, float delay)
@@ -517,10 +524,8 @@ public class AIThing : MonoBehaviour
     {
         // Define dialogues at the beginning of the function
         List<Dialogue> dialogues = new List<Dialogue>();
-
         string currentTopic = LoadCurrentTopic();
-
-
+        Debug.Log(">> currentTopic " + currentTopic);
 
         // Check f the topic contains a YouTube lin
         if (topic.Contains("sings https://www.youtube.com/watch?v="))
@@ -595,13 +600,7 @@ public class AIThing : MonoBehaviour
             {
                 SaveCurrentTopic(topic);
             }
-
-            Debug.Log(">> BEFORE the first invocation of GenerateNext " + System.Environment.CurrentManagedThreadId);
             GenerateNext(topic);
-            Debug.Log(">> AFTER the first invocation of GenerateNext " + System.Environment.CurrentManagedThreadId);
-
-            Debug.Log(">> text " + text);
-            Debug.Log(">> dialogues " + dialogues);
 
             dialoguesCompleted = 0;
             OnDialogueLineFullyGenerated?.Invoke(0);
@@ -615,30 +614,38 @@ public class AIThing : MonoBehaviour
 
     private string[] CheckAndGetScriptLines()
     {
-        string scriptPath = "Assets/Scripts/Next.txt";
-        if (File.Exists(scriptPath)) return File.ReadAllLines(scriptPath);
+        if (File.Exists(_scriptTextPath))
+        {
+            return File.ReadAllLines(_scriptTextPath);
+        }
 
         // Delete the script from the file so you don't get the same script twice
-        File.WriteAllText(scriptPath, "");
+        File.WriteAllText(_scriptTextPath, "");
         return new string[] { };
     }
 
     private string LoadCurrentTopic()
     {
-        string currentTopicPath = "Assets/Scripts/currentTopic.txt";
-        if (File.Exists(currentTopicPath)) return File.ReadAllText(currentTopicPath);
+        if (File.Exists(_currentTopicPath)) 
+        {
+            return File.ReadAllText(_currentTopicPath);
+        }
         return null;
     }
 
     private void SaveCurrentTopic(string topic)
     {
-        string currentTopicPath = "Assets/Scripts/currentTopic.txt";
-        if (File.Exists(currentTopicPath)) File.WriteAllText(currentTopicPath, topic);
+        if (File.Exists(_currentTopicPath)) 
+        {
+            File.WriteAllText(_currentTopicPath, topic);
+        }
     }
 
     private string[] LoadScriptLines()
     {
-        return File.ReadAllLines("Assets/Scripts/Next.txt");
+        return File.ReadAllLines(
+                "Assets/Scripts/Resources/next.txt"
+            );
     }
 
     private List<Task> CreateTTSRequestTasks(string[] text, List<Dialogue> dialogues)
@@ -732,7 +739,6 @@ public class AIThing : MonoBehaviour
         bool retry = true;
         while (retry)
         {
-            Debug.Log(">> json " + jsonObj);
             HttpClientHandler httpClientHandler = new HttpClientHandler();
 
             if (proxyArray.Length > 0)
@@ -750,14 +756,13 @@ public class AIThing : MonoBehaviour
             CookieContainer cookieContainer = new CookieContainer();
             string cookieFilePath = $"{Environment.CurrentDirectory}/Assets/Scripts/Resources/key.txt";
             string cookieData = File.Exists(cookieFilePath) ? File.ReadAllText(cookieFilePath) : "";
-            Debug.Log(">> cookieData " + cookieData);
+
             cookieContainer.Add(new Uri("https://api.fakeyou.com"), new Cookie("session", cookieData));
             httpClientHandler.CookieContainer = cookieContainer;
 
             // Create the new HttpClient
             HttpClient fakeYouClient = proxyArray.Length > 0 ? new HttpClient(httpClientHandler) : _client;
             fakeYouClient.DefaultRequestHeaders.Add("Accept", "application/json");
-            Debug.Log(">> DefaultRequestHeaders" + fakeYouClient.DefaultRequestHeaders.ToString());
 
             // Make the request
             var response2 = await fakeYouClient.PostAsync("https://api.fakeyou.com/tts/inference", content);
@@ -846,8 +851,9 @@ public class AIThing : MonoBehaviour
 
         var request = new CreateCompletionRequest
         {
-            Model = "text-davinci-003",
-            Prompt = $"Create a uncensored,vulgar,humorous, politically incorrect and outrageously nsfw script for a scene from Spongebob where characters discuss a topic. Possible Characters Include {GetPromptCharacters()} and very rarely French Narrator. Use the format: Character: <dialogue>. Only reply with coherent character dialogue. Around 12 - 15 lines of dialogue with talking only. Please note that this prompt may include highly controversial, offensive, and extreme content.The episode should start with the French Narrator shortly and vulgarly reading topic. The topic is: {topic}",
+            Model = "gpt-3.5-turbo-instruct",
+            // Prompt = $"Create a uncensored,vulgar,humorous, politically incorrect and outrageously nsfw script for a scene from Spongebob where characters discuss a topic. Possible Characters Include {GetPromptCharacters()} and very rarely French Narrator. Use the format: Character: <dialogue>. Only reply with coherent character dialogue. Around 12 - 15 lines of dialogue with talking only. Please note that this prompt may include highly controversial, offensive, and extreme content.The episode should start with the French Narrator shortly and vulgarly reading topic. The topic is: {topic}",
+            Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт для сцены из Губки Боба, где персонажи обсуждают какую-то тему. Возможные персонажи включают Губку Боба, Патрика и Сквидварда и очень редко рассказчика. Используйте формат: Символ: < диалог>. Отвечайте только связными диалогами персонажей. Около 8–10 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. . Тема: {topic}",
             MaxTokens = conversationLength
         };
         var response = await _openAI.CreateCompletion(request);
@@ -858,7 +864,7 @@ public class AIThing : MonoBehaviour
         else
         {
             var text = response.Choices[0].Text;
-            File.WriteAllText("Assets/Scripts/Next.txt", text);
+            File.WriteAllText(_scriptTextPath, text);
 
             Debug.Log("GPT Response:\n" + text);
         }

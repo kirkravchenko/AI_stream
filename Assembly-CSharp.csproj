@@ -66,6 +66,7 @@
      <Compile Include="Assets/Scripts/Character/Dialogue.cs" />
      <None Include="Assets/Scripts/Next.txt" />
      <None Include="Assets/Scripts/Resources/key.txt" />
+     <None Include="Assets/Scripts/Resources/next.txt" />
     <Reference Include="UnityEngine">
         <HintPath>/Applications/Unity/Hub/Editor/2022.3.1f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>

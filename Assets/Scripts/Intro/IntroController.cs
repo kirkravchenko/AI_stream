@@ -83,17 +83,20 @@ public class IntroController : MonoBehaviour
             }
         }
     }
+
     private void UpdateProgress(float progress)
     {
         if (generatedIntroCard == null) return;
         introCard.UpdateLoadingProgress(progress);
     }
+
     private void SceneReloaded()
     {
         if (generatedIntroCard != null) return;
 
         Display();
     }
+
     private void OnDestroy()
     {
         AIThing.OnTopicSelected -= Display;
@@ -101,11 +104,13 @@ public class IntroController : MonoBehaviour
         AIThing.OnEpisodeStart -= HideIntro;
         AIThing.OnDialogueLineFullyGenerated -= UpdateProgress;
     }
+    
     public void Display(string topicName = "")
     {
-        if (topicName == currentTopicName && generatedIntroCard != null)
+        if (topicName == currentTopicName 
+            && generatedIntroCard != null)
         {
-               Hide(false,true);
+            Hide(false, true);
         }
         else
         {

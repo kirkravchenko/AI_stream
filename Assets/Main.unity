@@ -238,7 +238,8 @@ MonoBehaviour:
   audioClips: []
   topicText: {fileID: 0}
   subtitles: {fileID: 0}
-  characterPrefabs: []
+  characterPrefabs:
+  - {fileID: 8983591326635444090, guid: 706721f72db4b4edd92f4dd48d101375, type: 3}
   speakingCharacterAnimator: {fileID: 0}
   _cinemachineVirtualCamera: {fileID: 0}
   conversationLength: 750
