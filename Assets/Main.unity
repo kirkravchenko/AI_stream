@@ -242,7 +242,7 @@ MonoBehaviour:
   - {fileID: 8983591326635444090, guid: 706721f72db4b4edd92f4dd48d101375, type: 3}
   speakingCharacterAnimator: {fileID: 0}
   _cinemachineVirtualCamera: {fileID: 0}
-  conversationLength: 750
+  conversationLength: 751
 --- !u!4 &1173682329
 Transform:
   m_ObjectHideFlags: 0

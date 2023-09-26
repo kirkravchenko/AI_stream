@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace DialogueAI
 {
@@ -12,6 +13,12 @@ namespace DialogueAI
         public string text { get; set; }
         public string model { get; set; }
         public string cookie { get; set; }
+    }
+
+    public class Dialogue2
+    {
+        public string text { get; set; }
+        public string audioPath { get; set; }
     }
 
     public class SpeakResponse

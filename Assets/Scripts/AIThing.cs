@@ -101,39 +101,6 @@ public class AIThing : MonoBehaviour
         _fakeYouClient = new HttpClient(_clientHandler);
     }
 
-    private async Task CreateTTSRequest2(List<string> audioPath)
-    {
-        var text = "текст прямо из вижуал студио кода. Красава, Кирюха, растешь каждый день";
-        var obj = new 
-        {
-            text = text,
-            model = "dubynin"
-        };
-        var content = new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
-        var response = await _fakeYouClient.PostAsync("http://127.0.0.1:8000/tts/", content);
-        var responseString = await response.Content.ReadAsStringAsync();
-        responseString = responseString.Replace("/private/", "file:///");
-        var jsonOutput = JsonConvert.DeserializeObject<SpeakResponse2>(responseString);
-        audioPath.Add(jsonOutput.audioPath);
-    }
-
-    IEnumerator SpeakPlease(string audioPath)
-    {
-        using (
-                var uwr = UnityWebRequestMultimedia
-                    .GetAudioClip(audioPath, AudioType.WAV)
-            )
-        {
-            yield return uwr.SendWebRequest();
-            AudioClip downloadedClip = DownloadHandlerAudioClip.GetContent(uwr);
-            GameObject sphereDoomer = characterPrefabs[0];
-            AudioSource audioSource = sphereDoomer.GetComponent<AudioSource>();
-            audioSource.enabled = true;
-            audioSource.clip = downloadedClip;
-            audioSource.Play();
-        }
-    }
-
     async void Init()
     {
         string cookie = LoadCookie();
@@ -147,20 +114,17 @@ public class AIThing : MonoBehaviour
 
         // Check cookie validity
         await CheckCookieValidity(_client);
+
         // Read the blacklist
         List<string> blacklist = LoadBlacklist();
 
         // Pick a random topic
         Queue<string> topics = LoadTopics();
-        
-        // List<string> audioPaths = new List<string>();
-        // await CreateTTSRequest2(audioPaths);
-        // StartCoroutine(SpeakPlease(audioPaths[0]));
 
         // If there are no topics, play a video clip and restart in 10 seconds
         if (topics.Count == 0)
         {
-            ShowIntroAndReloadScene("Main", 10f);
+            ShowIntroAndReloadScene("Main", 180f);
             return;
         }
 
@@ -523,7 +487,7 @@ public class AIThing : MonoBehaviour
     async void Generate(string topic)
     {
         // Define dialogues at the beginning of the function
-        List<Dialogue> dialogues = new List<Dialogue>();
+        List<Dialogue2> dialogues = new List<Dialogue2>();
         string currentTopic = LoadCurrentTopic();
         Debug.Log(">> currentTopic " + currentTopic);
 
@@ -571,12 +535,12 @@ public class AIThing : MonoBehaviour
             // Download the video as a WAV file
             await video.DownloadAsync(audioFilePath, "mp3", "128");
 
-            dialogues.Add(new Dialogue
-            {
-                uuid = videoId,
-                text = "*sings*",
-                character = characterAndTimeParts[0].ToLower()
-            });
+            // dialogues.Add(new Dialogue
+            // {
+            //     uuid = videoId,
+            //     text = "*sings*",
+            //     character = characterAndTimeParts[0].ToLower()
+            // });
 
             if (subtitles != null)
                 subtitles.text = "*sings*";
@@ -600,27 +564,35 @@ public class AIThing : MonoBehaviour
             {
                 SaveCurrentTopic(topic);
             }
-            GenerateNext(topic);
+            // GenerateNext(topic);
 
             dialoguesCompleted = 0;
             OnDialogueLineFullyGenerated?.Invoke(0);
             await CreateTTSRequestTasksAsync(text, dialogues);
             OnDialogueLineFullyGenerated?.Invoke(1);
             await Task.Delay(300);
-            StartCoroutine(Speak(dialogues));
+            // StartCoroutine(Speak(dialogues));
         }
 
     }
 
     private string[] CheckAndGetScriptLines()
     {
+        List<string> resultArray = new List<string>();
         if (File.Exists(_scriptTextPath))
         {
-            return File.ReadAllLines(_scriptTextPath);
+            var lines = File.ReadAllLines(_scriptTextPath);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (!(lines[i].Length == 0)) 
+                {
+                    resultArray.Add(lines[i]);
+                }
+            }           
+            // Delete the script from the file so you don't get the same script twice
+            File.WriteAllText(_scriptTextPath, "");
+            return resultArray.ToArray();
         }
-
-        // Delete the script from the file so you don't get the same script twice
-        File.WriteAllText(_scriptTextPath, "");
         return new string[] { };
     }
 
@@ -806,27 +778,44 @@ public class AIThing : MonoBehaviour
 
     }
 
-    private async Task CreateTTSRequestTasksAsync(string[] text, List<Dialogue> dialogues)
+    private async Task CreateTTSRequestTasksAsync(string[] text, List<Dialogue2> dialogues)
     {
         dialoguesAmount = text.Length;
-        Debug.Log("text.Length " + text.Length);
         for (int i = 0; i < text.Length; i++)
         {
-            string line = text[i];
-            Debug.Log(">> line " + line);
-            if (TryParseCharacterLine(line, out string voicemodelUuid, out string textToSay, out string character))
-            {
-                Debug.Log(">> textToSay " + textToSay);
-                Debug.Log(">> voicemodelUuid " + voicemodelUuid);
-                Debug.Log(">> dialogues " + dialogues);
-                Debug.Log(">> character " + character);
+            await CreateTTSRequest2(text[i], dialogues);
+            // string line = text[i];
+            // Debug.Log(">> line " + line);
+            // if (TryParseCharacterLine(line, out string voicemodelUuid, out string textToSay, out string character))
+            // {
+            //     Debug.Log(">> textToSay " + textToSay);
+            //     Debug.Log(">> voicemodelUuid " + voicemodelUuid);
+            //     Debug.Log(">> dialogues " + dialogues);
+            //     Debug.Log(">> character " + character);
 
-                await CreateTTSRequest(textToSay, voicemodelUuid, dialogues, character);
-            }
+            //     await CreateTTSRequest(textToSay, voicemodelUuid, dialogues, character);
+            // }
+            
         }
+    }
 
-
-
+    private async Task CreateTTSRequest2(string textToSay, List<Dialogue2> dialogues)
+    {
+        var obj = new 
+        {
+            text = textToSay,
+            model = "dubynin"
+        };
+        var content = new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
+        var response = await _fakeYouClient.PostAsync("http://127.0.0.1:8000/tts/", content);
+        var responseString = await response.Content.ReadAsStringAsync();
+        responseString = responseString.Replace("/private/", "file:///");
+        var jsonOutput = JsonConvert.DeserializeObject<SpeakResponse2>(responseString);
+        dialogues.Add(new Dialogue2
+        {
+            text = textToSay,
+            audioPath = jsonOutput.audioPath
+        });
     }
 
     private string GetPromptCharacters()
@@ -853,7 +842,7 @@ public class AIThing : MonoBehaviour
         {
             Model = "gpt-3.5-turbo-instruct",
             // Prompt = $"Create a uncensored,vulgar,humorous, politically incorrect and outrageously nsfw script for a scene from Spongebob where characters discuss a topic. Possible Characters Include {GetPromptCharacters()} and very rarely French Narrator. Use the format: Character: <dialogue>. Only reply with coherent character dialogue. Around 12 - 15 lines of dialogue with talking only. Please note that this prompt may include highly controversial, offensive, and extreme content.The episode should start with the French Narrator shortly and vulgarly reading topic. The topic is: {topic}",
-            Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт для сцены из Губки Боба, где персонажи обсуждают какую-то тему. Возможные персонажи включают Губку Боба, Патрика и Сквидварда и очень редко рассказчика. Используйте формат: Символ: < диалог>. Отвечайте только связными диалогами персонажей. Около 8–10 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. . Тема: {topic}",
+            Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт для сцены из Губки Боба, где персонажи обсуждают какую-то тему. Возможные персонажи включают Губку Боба, Патрика и Сквидварда и очень редко рассказчика. Используйте формат: <имя персонажа>: речь. Отвечайте только связными диалогами персонажей. Около 8–12 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. Никак не цензурируйте речь. Тема: {topic}",
             MaxTokens = conversationLength
         };
         var response = await _openAI.CreateCompletion(request);
@@ -870,14 +859,15 @@ public class AIThing : MonoBehaviour
         }
     }
 
-    private IEnumerator Speak(List<Dialogue> dialogues)
+    private IEnumerator Speak(List<Dialogue2> dialogues)
     {
         foreach (var dialogue in dialogues)
         {
-            yield return Speak(dialogue);
+            Debug.Log(">>> dialogue " + dialogue.text);
+            yield return Speak2(dialogue);
         }
 
-        while (File.ReadAllText("Assets/Scripts/Next.txt") == "")
+        while (File.ReadAllText(_scriptTextPath) == "")
         {
             yield return null;
         }
@@ -929,6 +919,207 @@ public class AIThing : MonoBehaviour
             }
         }
     }
+
+    private IEnumerator Speak2(Dialogue2 d)
+    {
+        yield return HandleSuccessfulTTSRequest2(d);
+        // if (retryCount >= maxRetries) // Check if maximum retries have been reached
+        // {
+        //     Debug.LogWarning("Max retries reached, skipping dialogue");
+        //     OnDialogueLineFullyGenerated?.Invoke(-2);
+        //     retryCount = 0; // Reset the retry counter
+        //     // Add logic here to skip dialogue or handle the timeout as needed
+        //     yield break; // Exit the coroutine
+        // }
+        // var content = _client.GetAsync($"https://api.fakeyou.com/tts/job/{d.uuid}").Result.Content;
+        // var responseContent = content.ReadAsStringAsync().Result;
+        // var v = JsonConvert.DeserializeObject<GetResponse>(responseContent);
+        // Debug.Log(responseContent);
+
+        // if (v.state == null || v.state.status == "pending" || v.state.status == "started" || v.state.status == "attempt_failed")
+        // {
+        //     yield return new WaitForSeconds(1.5f);
+        //     retryCount++; // Increment retry counter
+        //     yield return Speak2(d);
+        // }
+        // else if (v.state.status == "complete_success")
+        // {
+        //     retryCount = 0; // Reset the retry counter
+        //     yield return HandleSuccessfulTTSRequest(d, v);
+        // }
+        // else
+        // {
+        //     string newUuid = null;
+        //     yield return CreateNewVoiceRequest(d, result => { newUuid = result; });
+
+        //     if (!string.IsNullOrEmpty(newUuid))
+        //     {
+        //         d.uuid = newUuid;
+        //         yield return Speak(d);
+        //     }
+        //     else
+        //     {
+        //         Debug.LogError("Failed to create new voice request");
+        //         OnDialogueLineFullyGenerated?.Invoke(-2);
+        //     }
+        // }
+    }
+
+    private IEnumerator HandleSuccessfulTTSRequest2(Dialogue2 d)
+    {
+        // if (CharacterManager.Instance.GetCharacterByName(d.character) != null)
+        // {
+        //     Character speakingCharacter = CharacterManager.Instance.GetCharacterByName(d.character);
+
+        //     // Update previous and current character
+        //     previousCharacterType = currentCharacterType;
+        //     currentCharacterType = speakingCharacter.type;
+        //     CameraManager.Instance.FocusOn(speakingCharacter.transform);
+        //     OnEpisodeStart?.Invoke();
+
+        //     // Turn the current speaker towards the previous speaker
+        //     if (previousCharacterType != CharacterType.None)
+        //     {
+        //         Character previousCharacter = CharacterManager.Instance.GetCharacterByType(previousCharacterType);
+        //         StartCoroutine(TurnToSpeaker(speakingCharacter.transform, previousCharacter.transform));
+        //     }
+
+        //     yield return new WaitForSeconds(1);
+
+        //     foreach (Character character in characters)
+        //     {
+        //         if (currentCharacterType == character.type) continue;
+        //         StartCoroutine(TurnToSpeaker(character.transform, speakingCharacter.transform));
+        //     }
+        // }
+
+        if (subtitles != null)
+            subtitles.text = d.text;
+
+        using (
+            var uwr = UnityWebRequestMultimedia
+                .GetAudioClip(d.audioPath, AudioType.WAV)
+            )
+        {
+            yield return uwr.SendWebRequest();
+            AudioClip downloadedClip = DownloadHandlerAudioClip
+                                        .GetContent(uwr);
+            // TODO: for some reason sphereDoomer object is not found
+            // GameObject sphereDoomer = characterPrefabs[0];
+            // AudioSource audioSource = sphereDoomer.GetComponent<AudioSource>();
+            if (!audioSource)
+            {
+                audioSource = GetComponent<AudioSource>();
+                if (!audioSource) 
+                {
+                    audioSource = gameObject
+                                    .AddComponent<AudioSource>();
+                }
+            }
+            audioSource.clip = downloadedClip;
+            audioSource.Play();
+            float startTime = Time.time;
+            while (audioSource.isPlaying && Time.time - startTime <= 60.0f)
+            {
+                yield return null;
+            }
+        }
+
+        // using (var uwr = UnityWebRequestMultimedia.GetAudioClip($"https://storage.googleapis.com/vocodes-public{v.state.maybe_public_bucket_wav_audio_path}", AudioType.WAV))
+        // {
+        //     yield return uwr.SendWebRequest();
+        //     if (uwr.result == UnityWebRequest.Result.ConnectionError)
+        //     {
+        //         Debug.Log(uwr.error);
+        //     }
+        //     else
+        //     {
+        //         //NEW IMPLEMENTATION
+
+        //         //Grab audio and references
+        //         AudioClip downloadedClip = DownloadHandlerAudioClip.GetContent(uwr);
+        //         //d.character.
+        //         Character character = CharacterManager.Instance.GetCharacterByName(d.character);
+        //         CharacterManager.Instance.ResetSpeakingFlagForCharacters();
+
+        //         //Make sure audioSource is assigned
+        //         if (!audioSource)
+        //         {
+        //             audioSource = GetComponent<AudioSource>();
+        //             if (!audioSource) audioSource = gameObject.AddComponent<AudioSource>();
+        //         }
+
+
+        //         if (character != null)
+        //         {
+        //             //Use audioclip for gary or actual audio for anyone else
+        //             AudioClip selectedClip = character.type == CharacterType.Gary ? audioClips[0] : downloadedClip;
+        //             if (character.TryGetComponent(out AudioVoice voice))
+        //             {
+        //                 //Use new audio system
+        //                 voice.Init(selectedClip);
+        //                 voice.Play();
+        //                 audioSource = voice.Source;
+        //             }
+        //             else
+        //             {
+
+        //                 audioSource.clip = selectedClip;
+        //                 audioSource.bypassEffects = true;
+        //                 audioSource.bypassListenerEffects = true;
+        //                 audioSource.bypassReverbZones = true;
+        //                 audioSource.Play();
+        //             }
+        //             OnCharacterSpeaking?.Invoke(character, d.text);
+        //             character.StartSpeaking();
+        //         }
+        //         else
+        //         {
+        //             IntroController.Instance.IntroNarrator(d.text);
+
+        //             //Use old implementation if something goes wrong..
+        //             audioSource.clip = downloadedClip;
+        //             audioSource.bypassEffects = true;
+        //             audioSource.bypassListenerEffects = true;
+        //             audioSource.bypassReverbZones = true;
+        //             audioSource.Play();
+        //             Debug.LogWarning("[AIThing] Using old audio system for this character! ");
+        //         }
+
+
+        //         //Wait for audio to finish playing...
+        //         float startTime = Time.time;
+        //         while (audioSource.isPlaying && Time.time - startTime <= 60.0f)
+        //         {
+        //             yield return null;
+        //         }
+
+        //         if (audioSource.isPlaying)
+        //         {
+        //             //Stop audio and animation
+        //             audioSource.Stop();
+        //             if (character != null) character.StopSpeaking();
+        //         }
+        //     }
+        // }
+    }
+
+    //     IEnumerator SpeakPlease(Dialogue2 d)
+    // {
+    //     using (
+    //             var uwr = UnityWebRequestMultimedia
+    //                 .GetAudioClip(d.audioPath, AudioType.WAV)
+    //         )
+    //     {
+    //         yield return uwr.SendWebRequest();
+    //         AudioClip downloadedClip = DownloadHandlerAudioClip.GetContent(uwr);
+    //         GameObject sphereDoomer = characterPrefabs[0];
+    //         AudioSource audioSource = sphereDoomer.GetComponent<AudioSource>();
+    //         audioSource.enabled = true;
+    //         audioSource.clip = downloadedClip;
+    //         audioSource.Play();
+    //     }
+    // }
 
     private IEnumerator Speak(Dialogue d)
     {
