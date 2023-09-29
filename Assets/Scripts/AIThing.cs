@@ -1060,12 +1060,9 @@ public class AIThing : MonoBehaviour
                 .GetAudioClip(d.audioPath, AudioType.UNKNOWN)
             )
         {
-            Debug.Log(">> d " + d.ToString());
-            Debug.Log(">> d.audioPath " + d.audioPath);
             yield return uwr.SendWebRequest();
             AudioClip downloadedClip = DownloadHandlerAudioClip
                                         .GetContent(uwr);
-            Debug.Log(">> downloadedClip.name " + downloadedClip.name);
             Character character = CharacterManager.Instance
                 .GetCharacterByName(d.character);
             // TODO: for some reason sphereDoomer object is not found
@@ -1080,7 +1077,6 @@ public class AIThing : MonoBehaviour
             // {
 
             // }
-            Debug.Log(">> starting SPEAKING");
             if (!audioSource)
             {
                 audioSource = GetComponent<AudioSource>();
