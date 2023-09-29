@@ -64,6 +64,7 @@
      <Compile Include="Assets/Scripts/Character/CharacterType.cs" />
      <Compile Include="Assets/Scripts/Intro/IntroController.cs" />
      <Compile Include="Assets/Scripts/Character/Dialogue.cs" />
+     <None Include="Assets/Scripts/Resources/prompts.txt" />
      <None Include="Assets/Scripts/Next.txt" />
      <None Include="Assets/Scripts/Resources/key.txt" />
      <None Include="Assets/Scripts/Resources/next.txt" />

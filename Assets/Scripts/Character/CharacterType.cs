@@ -14,5 +14,8 @@ public enum CharacterType
     Gary,
     Plankton,
     Narrator,
-    MrsPuff
+    MrsPuff,
+    Kir,
+    Lana,
+    Antosha
 }

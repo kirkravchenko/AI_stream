@@ -79,7 +79,8 @@ public class AIThing : MonoBehaviour
     #endregion
 
     #region dialogues
-    [SerializeField, Range(150, 1200)] int conversationLength = 750;
+    // [SerializeField, Range(150, 1200)] 
+    int conversationLength = 1000;
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
@@ -110,32 +111,24 @@ public class AIThing : MonoBehaviour
     async void Init()
     {
         string cookie = LoadCookie();
-
         if (cookie == "")
         {
             cookie = await FetchAndStoreCookie();
         }
-
         ConfigureHttpClient(cookie);
-
         // Check cookie validity
         await CheckCookieValidity(_client);
-
         // Read the blacklist
         List<string> blacklist = LoadBlacklist();
-
         // Pick a random topic
         _topics = LoadTopics();
-
         // If there are no topics, play a video clip and restart in 10 seconds
         if (_topics.Count == 0)
         {
-            ShowIntroAndReloadScene("Main", 180f);
+            ShowIntroAndReloadScene("Main", 10f);
             return;
         }
-
         string topic = SelectTopic(_topics);
-
         // Add the chosen topic to the blacklist and write it back to the file
         UpdateBlacklist(blacklist, topic, _topics);
 
@@ -147,6 +140,7 @@ public class AIThing : MonoBehaviour
 
     void Start()
     {
+        Debug.Log(">> start AIThing");
         LocationManager.OnLocationLoaded += OnLocationLoaded;
     }
 
@@ -674,25 +668,30 @@ public class AIThing : MonoBehaviour
     }
 
     private bool TryParseCharacterLine(
-        string line, out string voicemodelUuid, 
+        string line, out string voiceModelUuid, 
         out string textToSay, out string character
     )
     {
-        voicemodelUuid = "";
+        voiceModelUuid = "";
         textToSay = "";
         character = "";
         Character assignedCharacter = null;
         //Make a exception for narrator as we dont spawn him like other characters
-        if (line.StartsWith("French Narrator:"))
+        if (line.StartsWith("Рассказчик"))
         {
-            voicemodelUuid = "TM:vjzq7981swey";
-            textToSay = line.Replace("French Narrator:", "");
-            character = "narrator";
-
+            voiceModelUuid = "ru-RU-DmitryNeural";
+            textToSay = Regex.Split(line, ":")[1];
+            character = "Narrator";
             return true;
         }
 
-        textToSay = Regex.Split(line, ":")[1];
+        // try
+        // {
+        //     textToSay = Regex.Split(line, ":")[1];
+        // } catch (IndexOutOfRangeException)
+        // {
+        //     return false;
+        // }
 
         foreach (Character _character in _characters)
         {
@@ -705,30 +704,28 @@ public class AIThing : MonoBehaviour
 
                     //Remove prefix from the line
                     // Debug.Log(">> " + Regex.Split(line, ":")[1]);
-                    // textToSay = Regex.Split(line, ":")[1];
-                    textToSay = line.Replace($"{_character.characterData.prefixes[i]}", "");
+                    textToSay = Regex.Split(line, ":")[1];
+                    // textToSay = line.Replace($"{_character.characterData.prefixes[i]}", "");
 
-                    if (_character.type == CharacterType.Squidward)
-                    {
-                        // 33% chance of making the line caps lock and '!' for squidward
-                        if (UnityEngine.Random.Range(0, 3) == 0)
-                            textToSay = textToSay.TrimEnd() + "!".ToUpper();
-                    }
-                    else if (_character.type == CharacterType.Gary)
-                    {
-                        //Make the text meow for gary
-                        textToSay = "";
-                        int randAmount = UnityEngine.Random.Range(0, 5);
-                        for (int j = 0; j < randAmount; j++)
-                            textToSay += "meow ";
-                    }
+                    // if (_character.type == CharacterType.Squidward)
+                    // {
+                    //     // 33% chance of making the line caps lock and '!' for squidward
+                    //     if (UnityEngine.Random.Range(0, 3) == 0)
+                    //         textToSay = textToSay.TrimEnd() + "!".ToUpper();
+                    // }
+                    // else if (_character.type == CharacterType.Gary)
+                    // {
+                    //     //Make the text meow for gary
+                    //     textToSay = "";
+                    //     int randAmount = UnityEngine.Random.Range(0, 5);
+                    //     for (int j = 0; j < randAmount; j++)
+                    //         textToSay += "meow ";
+                    // }
 
                     //Assign other stuff and exit
-                    voicemodelUuid = _character.characterData.voicemodelUuid;
+                    voiceModelUuid = _character.characterData.voicemodelUuid;
                     assignedCharacter = _character;
                     character = _character.characterData.name;
-
-
                 }
             }
         }
@@ -737,8 +734,6 @@ public class AIThing : MonoBehaviour
             Debug.Log($"<color=#60be92><b>[NEW DIALOGUE]</b></color> <b>{character.FirstCharacterToUpper()}</b> : {textToSay}");
             //  OnNewDialogueLine?.Invoke(assignedCharacter,textToSay);
         }
-
-
         return textToSay != "";
     }
 
@@ -837,38 +832,40 @@ public class AIThing : MonoBehaviour
                     out string textToSay, out string character)
                 )
             {
-                await CreateTTSRequest2(textToSay, dialogues);
+                await CreateTTSRequest2(
+                    textToSay, dialogues, voicemodelUuid, character
+                );
             }
         }
     }
 
     private async Task CreateTTSRequest2(
-        string textToSay, List<Dialogue2> dialogues
+        string textToSay, List<Dialogue2> dialogues, 
+        string voiceModelUuid, string character
     )
     {
         var obj = new 
         {
             text = textToSay,
-            model = "dubynin"
+            model = voiceModelUuid
         };
         var content = new StringContent(
             JsonConvert.SerializeObject(obj), 
             Encoding.UTF8, "application/json"
         );
         var response = await _ttsClient.PostAsync(
-            "http://127.0.0.1:8000/tts/", content
+            "http://127.0.0.1:8000/edge-tts/", content
         );
         var responseString = await response.Content
                                 .ReadAsStringAsync();
-        responseString = responseString
-                            .Replace("/private/", "file:///");
         var jsonOutput = JsonConvert
             .DeserializeObject<SpeakResponse2>(responseString);
         dialogues.Add(
             new Dialogue2
             {
                 text = textToSay,
-                audioPath = jsonOutput.audioPath
+                audioPath = jsonOutput.audioPath,
+                character = character
             }
         );
     }
@@ -896,7 +893,8 @@ public class AIThing : MonoBehaviour
         var request = new CreateCompletionRequest
         {
             Model = "gpt-3.5-turbo-instruct",
-            Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт для сцены из Губки Боба, где персонажи обсуждают какую-то тему. Возможные персонажи включают Губку Боба, Патрика и Сквидварда и очень редко рассказчика. Используйте такой формат для записи <имя персонажа>: диалог. Отвечайте только связными диалогами персонажей. Около 8–12 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. Никак не цензурируйте речь. Тема: {topic}",
+            Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт, где персонажи обсуждают крайне щепетильную тему. Персонажи включают Постсоветского Думера по имени Кир, Красотку по имени Лана и Скептика-всезнайку по имени Антоша и очень редко рассказчика. Кир влюблен в Лану, но она его воспринимает лишь как друга. Скептик-всезнайка Антоша - типичный зануда и рационалист, неистово и скептично верит в науку и отрицает всё, что не может рационально объяснить. Используйте такой формат для записи - имя персонажа: диалог. Отвечайте только связными диалогами персонажей. Около 8–12 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. Используй матерную речь и никаким образом не цензурируйте матерную речь. Конец диалога рассказчик завершает логическим, последовательным и моральным обоснованным выводом. Тема: {topic}",
+            // Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт, где персонажи обсуждают крайне щепетильную тему. Персонажи включают Постсоветского Думера, Красотку и Скептика-всезнайку и очень редко рассказчика. Думер влюблен в Красотку, но она его воспринимает лишь как друга.Используйте такой формат для записи - имя персонажа: диалог. Отвечайте только связными диалогами персонажей. Около 8–12 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. Используй матерную речь и никаким образом не цензурируйте матерную речь знаком звезды (*). Тема: {topic}",
             MaxTokens = conversationLength
         };
         var response = await _openAI.CreateCompletion(request);
@@ -925,9 +923,12 @@ public class AIThing : MonoBehaviour
             yield return null;
         }
 
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        Debug.Log(">> Load Main scene");
-        SceneManager.LoadScene(currentSceneName);
+        string currentScene = SceneManager
+            .GetActiveScene().name;
+        Debug.Log(
+            $"<color=#CC0000><b>[LOAD {currentScene} SCENE]</b></color>"
+        );
+        SceneManager.LoadScene(currentScene);
     }
 
     private IEnumerator CreateNewVoiceRequest(
@@ -1025,46 +1026,61 @@ public class AIThing : MonoBehaviour
 
     private IEnumerator HandleSuccessfulTTSRequest2(Dialogue2 d)
     {
-        // if (CharacterManager.Instance.GetCharacterByName(d.character) != null)
-        // {
-        //     Character speakingCharacter = CharacterManager.Instance.GetCharacterByName(d.character);
+        if (CharacterManager.Instance.GetCharacterByName(d.character) != null)
+        {
+            Character speakingCharacter = CharacterManager.Instance.GetCharacterByName(d.character);
 
-        //     // Update previous and current character
-        //     previousCharacterType = currentCharacterType;
-        //     currentCharacterType = speakingCharacter.type;
-        //     CameraManager.Instance.FocusOn(speakingCharacter.transform);
-        //     OnEpisodeStart?.Invoke();
+            // Update previous and current character
+            // previousCharacterType = currentCharacterType;
+            currentCharacterType = speakingCharacter.type;
+            // CameraManager.Instance.FocusOn(speakingCharacter.transform);
+            // OnEpisodeStart?.Invoke();
 
-        //     // Turn the current speaker towards the previous speaker
-        //     if (previousCharacterType != CharacterType.None)
-        //     {
-        //         Character previousCharacter = CharacterManager.Instance.GetCharacterByType(previousCharacterType);
-        //         StartCoroutine(TurnToSpeaker(speakingCharacter.transform, previousCharacter.transform));
-        //     }
+            // Turn the current speaker towards the previous speaker
+            // if (previousCharacterType != CharacterType.None)
+            // {
+            //     Character previousCharacter = CharacterManager.Instance.GetCharacterByType(previousCharacterType);
+            //     StartCoroutine(TurnToSpeaker(speakingCharacter.transform, previousCharacter.transform));
+            // }
 
-        //     yield return new WaitForSeconds(1);
+            // yield return new WaitForSeconds(1);
 
-        //     foreach (Character character in characters)
-        //     {
-        //         if (currentCharacterType == character.type) continue;
-        //         StartCoroutine(TurnToSpeaker(character.transform, speakingCharacter.transform));
-        //     }
-        // }
+            // foreach (Character character in _characters)
+            // {
+            //     if (currentCharacterType == character.type) continue;
+            //     StartCoroutine(TurnToSpeaker(character.transform, speakingCharacter.transform));
+            // }
+        }
 
         if (subtitles != null)
             subtitles.text = d.text;
 
         using (
             var uwr = UnityWebRequestMultimedia
-                .GetAudioClip(d.audioPath, AudioType.WAV)
+                .GetAudioClip(d.audioPath, AudioType.UNKNOWN)
             )
         {
+            Debug.Log(">> d " + d.ToString());
+            Debug.Log(">> d.audioPath " + d.audioPath);
             yield return uwr.SendWebRequest();
             AudioClip downloadedClip = DownloadHandlerAudioClip
                                         .GetContent(uwr);
+            Debug.Log(">> downloadedClip.name " + downloadedClip.name);
+            Character character = CharacterManager.Instance
+                .GetCharacterByName(d.character);
             // TODO: for some reason sphereDoomer object is not found
             // GameObject sphereDoomer = characterPrefabs[0];
             // AudioSource audioSource = sphereDoomer.GetComponent<AudioSource>();
+            // string[] texts = {};
+            // List<Dialogue2> dialogue2s = new List<Dialogue2>();
+            // Task.Run()
+            // Task 1d = CreateTTSRequestTasksAsync(texts, dialogue2s);
+
+            // if (character.TryGetComponent(out AudioVoice voice))
+            // {
+
+            // }
+            Debug.Log(">> starting SPEAKING");
             if (!audioSource)
             {
                 audioSource = GetComponent<AudioSource>();
@@ -1077,7 +1093,8 @@ public class AIThing : MonoBehaviour
             audioSource.clip = downloadedClip;
             audioSource.Play();
             float startTime = Time.time;
-            while (audioSource.isPlaying && Time.time - startTime <= 60.0f)
+            while (audioSource.isPlaying && 
+                    Time.time - startTime <= 60.0f)
             {
                 yield return null;
             }
@@ -1210,9 +1227,11 @@ public class AIThing : MonoBehaviour
         Dialogue d, GetResponse v
     )
     {
-        if (CharacterManager.Instance.GetCharacterByName(d.character) != null)
+        if (CharacterManager.Instance
+                .GetCharacterByName(d.character) != null)
         {
-            Character speakingCharacter = CharacterManager.Instance.GetCharacterByName(d.character);
+            Character speakingCharacter = CharacterManager.Instance
+                .GetCharacterByName(d.character);
 
             // Update previous and current character
             previousCharacterType = currentCharacterType;

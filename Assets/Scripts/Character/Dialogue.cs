@@ -19,6 +19,7 @@ namespace DialogueAI
     {
         public string text { get; set; }
         public string audioPath { get; set; }
+        public string character { get; set; }
     }
 
     public class SpeakResponse

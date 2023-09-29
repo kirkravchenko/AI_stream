@@ -47,6 +47,10 @@ public abstract class BaseCharacter : MonoBehaviour
     private Vector3 startingPos;
     private Transform speakingCharacter; // To reference the speaking character
 
+    private bool waitTimerFinish = false;
+    private float stuckThreshold = -1f;
+    public bool disableAllMovement = false;
+    #endregion
 
     public void SetPredeterminedTransform(Transform[] transforms)
     {
@@ -57,18 +61,14 @@ public abstract class BaseCharacter : MonoBehaviour
     public void StartSpeaking()
     {
         isSpeaking = true;
-        if(Anim)
-        Anim.SetBool("isSpeaking", true);
+        if (Anim) Anim.SetBool("isSpeaking", true);
     }
 
     public void StopSpeaking()
     {
         isSpeaking = false;
-        if(Anim)
-        Anim.SetBool("isSpeaking", false);
+        if (Anim) Anim.SetBool("isSpeaking", false);
     }
-
-    #endregion
 
     #region Abstract functions
     public abstract void Init();
@@ -76,28 +76,32 @@ public abstract class BaseCharacter : MonoBehaviour
     public abstract void LookAt(Transform target);
     #endregion
 
-    private bool waitTimerFinish = false;
-    private float stuckThreshold = -1f;
-    public bool disableAllMovement = false;
     private void Awake()
     {
         Init();
-
         if (Agent != null)
         {
             SetupMovement();
         }
-
-        
     }
 
     private void Update()
     {
         if (Agent && Agent.isOnNavMesh)
         {
-            if (enabledPredeterminedPos && predeterminedTransforms.Length > 0 && stuckThreshold == -1f)
+            if (
+                enabledPredeterminedPos && 
+                predeterminedTransforms.Length > 0 && 
+                stuckThreshold == -1f
+            )
             {
-                MoveTo(predeterminedTransforms[UnityEngine.Random.Range(0, predeterminedTransforms.Length)], 0.01f);
+                MoveTo(
+                    predeterminedTransforms[
+                        Random.Range(
+                            0, predeterminedTransforms.Length
+                        )
+                    ], 0.01f
+                );
             }
 
             if (isSpeaking)
@@ -132,11 +136,15 @@ public abstract class BaseCharacter : MonoBehaviour
 
     private IEnumerator LookAtTargetCoroutine(Transform target)
     {
-        yield return new WaitForSeconds(UnityEngine.Random.Range(0, 0.3f));
+        yield return new WaitForSeconds(Random.Range(0, 0.3f));
         lookAtTarget = target;
     }
 
-    public bool DestinationReached => Vector3.Distance(transform.position, Agent.destination) < 0.1f || stuckThreshold == -1f;
+    public bool DestinationReached => 
+        Vector3.Distance(
+            transform.position, Agent.destination
+        ) < 0.1f || stuckThreshold == -1f;
+    
     public bool HasPath => Agent.hasPath;
 
     public void MoveToRandomPoint()
@@ -155,6 +163,7 @@ public abstract class BaseCharacter : MonoBehaviour
         Vector3 newDesiredPosition = GetRandomPoint(transform, radius);
         Agent.SetDestination(newDesiredPosition);
     }
+    
     public void RecalculatePathAndSetDestination(Vector3 position)
     {
         if (!Agent || disableAllMovement) return;
@@ -162,6 +171,7 @@ public abstract class BaseCharacter : MonoBehaviour
         Agent.SetDestination(position);
         Debug.Log("Moving...");
     }
+    
     public void NewStartPosition(Vector3 position) => startingPos = position;
 
     public bool TimerFinished => waitTimerFinish;
@@ -175,7 +185,7 @@ public abstract class BaseCharacter : MonoBehaviour
     public bool RandomChance(float chance = 50)
     {
         chance /= 100;
-        if (UnityEngine.Random.value < chance) return true;
+        if (Random.value < chance) return true;
         return false;
     }
 
@@ -225,13 +235,20 @@ public abstract class BaseCharacter : MonoBehaviour
         }
     }
 
-    private bool RandomPoint(Vector3 center, float range, out Vector3 result)
+    private bool RandomPoint(
+        Vector3 center, float range, out Vector3 result
+    )
     {
         for (int i = 0; i < 30; i++)
         {
-            Vector3 randomPoint = center + UnityEngine.Random.insideUnitSphere * range;
+            Vector3 randomPoint = center + 
+                Random.insideUnitSphere * range;
             NavMeshHit hit;
-            if (NavMesh.SamplePosition(randomPoint, out hit, 0.3f, NavMesh.AllAreas))
+            if (
+                NavMesh.SamplePosition(
+                    randomPoint, out hit, 0.3f, NavMesh.AllAreas
+                )
+            )
             {
                 result = hit.position;
                 return true;
@@ -241,10 +258,15 @@ public abstract class BaseCharacter : MonoBehaviour
         return false;
     }
 
-    private Vector3 GetRandomPoint(Transform point = null, float radius = 0)
+    private Vector3 GetRandomPoint(
+        Transform point = null, float radius = 0
+    )
     {
         Vector3 newPoint;
-        if (RandomPoint(point == null ? startingPos : point.position, radius == 0 ? maxWanderDistance : radius, out newPoint))
+        if (
+            RandomPoint(point == null ? startingPos : point.position, 
+            radius == 0 ? maxWanderDistance : radius, out newPoint)
+        )
         {
             Debug.DrawRay(newPoint, Vector3.up, Color.green, 4);
             return newPoint;
@@ -255,10 +277,9 @@ public abstract class BaseCharacter : MonoBehaviour
     private IEnumerator WaitAndMoveCoroutine()
     {
         waitTimerFinish = false;
-        float randomWaitTime = UnityEngine.Random.Range(minWaitTime, maxWaitTime);
+        float randomWaitTime = Random.Range(minWaitTime, maxWaitTime);
         yield return new WaitForSeconds(randomWaitTime);
         waitTimerFinish = true;
-
         MoveToRandomPoint();
     }
 
@@ -285,7 +306,6 @@ public abstract class BaseCharacter : MonoBehaviour
         Agent.speed = MoveSpeed;
         Agent.angularSpeed = RotationSpeed;
         randomMovement = moveRandomly;
-
         stuckThreshold = -1f;
         waitTimerFinish = true;
     }

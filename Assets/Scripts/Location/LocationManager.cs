@@ -7,40 +7,42 @@ using UnityEngine;
 public class LocationManager : MonoBehaviour
 {
 
+    #region variables
     public static event Action<PointOfInterest> OnNewPointOfInterest;
     public static event Action<List<GameObject>, PointOfInterest> OnLocationLoaded;
-
     private static LocationManager instance;
     public static LocationManager Instance { get { return instance; } }
-
-    private Character[] characters;
-
-
-
     [SerializeField] private PointOfInterest selectedPoint = null;
     public PointOfInterest SelectedPoint { get { return selectedPoint; } }
-
-    private void Start()
-    {
-        ChooseLocation();
-        LoadLocation();
-    }
     [SerializeField] Points[] points;
     public Points[] PointsOfInterest { get { return points; } }
+    #endregion
 
-    [System.Serializable]
+    [Serializable]
     public struct Points
     {
         public string name;
         public PointOfInterest pointOfInterest;
         [Range(0, 100)] public float chanceRate;
     }
+
+    private void Start()
+    {
+        Debug.Log(">> start LocationManager");
+        ChooseLocation();
+        LoadLocation();
+    }
+
     public void ChooseLocation()
     {
-        if (PointsOfInterest == null || PointsOfInterest.Length == 0) return;
+        if (PointsOfInterest == null || PointsOfInterest.Length == 0)
+        {
+            return;
+        }
 
         // Calculate the total chance
-        float totalChance = PointsOfInterest.Sum(point => point.chanceRate);
+        float totalChance = PointsOfInterest
+            .Sum(point => point.chanceRate);
 
         // Choose a random value between 0 and totalChance
         float value = UnityEngine.Random.value * totalChance;
@@ -63,28 +65,45 @@ public class LocationManager : MonoBehaviour
     {
         // get chosen location
         // setup location, spawn characters
-        List<GameObject> charactersToSpawn = CharacterManager.Instance.characterPrefabs.ToList();
+        List<GameObject> charactersToSpawn = 
+            CharacterManager.Instance.characterPrefabs.ToList();
         List<GameObject> spawnedCharacters = new List<GameObject>();
         foreach (GameObject character in charactersToSpawn)
         {
             Transform spawnPoint = null;
-            if (character.TryGetComponent(out Character characterScript))
+            if (
+                character
+                    .TryGetComponent(out Character characterScript)
+            )
             {
                 if (characterScript.type == CharacterType.Squidward)
-                    spawnPoint = SelectedPoint.specialSpawnpoints.squidwardPoint != null ? SelectedPoint.specialSpawnpoints.squidwardPoint : SelectedPoint.GetAvailableSpawnpoint();
-                else if (characterScript.type == CharacterType.MrKrabs)
-                    spawnPoint = SelectedPoint.specialSpawnpoints.mrKrabsPoint != null ? SelectedPoint.specialSpawnpoints.mrKrabsPoint : SelectedPoint.GetAvailableSpawnpoint();
+                {
+                    spawnPoint = SelectedPoint.specialSpawnpoints
+                        .squidwardPoint != null ? 
+                            SelectedPoint.specialSpawnpoints
+                                .squidwardPoint : SelectedPoint.
+                                    GetAvailableSpawnpoint();
+                }
+                else if (characterScript.type == 
+                            CharacterType.MrKrabs)
+                    spawnPoint = SelectedPoint
+                        .specialSpawnpoints.mrKrabsPoint != null ? 
+                            SelectedPoint.specialSpawnpoints
+                                .mrKrabsPoint : SelectedPoint
+                                    .GetAvailableSpawnpoint();
 
-                else spawnPoint = SelectedPoint.GetAvailableSpawnpoint();
+                else spawnPoint = SelectedPoint
+                    .GetAvailableSpawnpoint();
             }
             else Debug.LogError("No character script found!");
-            GameObject newCharacter = Instantiate(character, spawnPoint.position, spawnPoint.rotation);
+            GameObject newCharacter = Instantiate(
+                character, spawnPoint.position, spawnPoint.rotation
+            );
             spawnedCharacters.Add(newCharacter);
 
         }
         //Callback once its done.
         Debug.Log(OnLocationLoaded == null);
-
         OnLocationLoaded?.Invoke(spawnedCharacters, SelectedPoint);
     }
 
@@ -95,11 +114,10 @@ public class LocationManager : MonoBehaviour
         return false;
     }
 
-
     private void Awake()
     {
-        if (instance == null)
-            instance = this;
+        Debug.Log(">> LocatoinManager Awake");
+        if (instance == null) instance = this;
         else Destroy(gameObject);
     }
 }
