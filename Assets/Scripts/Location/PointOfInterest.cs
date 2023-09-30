@@ -3,20 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+
 public class PointOfInterest : MonoBehaviour
 {
     public PointName pointName;
-
     public VoiceModifier.ReverbPreset audioEffect;
     public Transform cameraLocation;
-
     public Transform[] normalSpawnPoints;
-
     public NpcSpawnPoint[] npcSpawnPoints;
-
-
     public SpecialSpawnpoints specialSpawnpoints;
-
     public PredeterminedPath[] predeterminedPaths;
     [System.Serializable]
     public struct PredeterminedPath

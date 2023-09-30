@@ -188,13 +188,15 @@ public class AIThing : MonoBehaviour
     {
         foreach (GameObject spawnedCharacter in spawnedCharacters)
         {
-            if (spawnedCharacter.TryGetComponent(out Character character))
-                _characters.Add(character);
+            if (spawnedCharacter
+                .TryGetComponent(out Character character))
+                {
+                    _characters.Add(character);
+                }
         }
 
         previousCharacterType = CharacterType.None;
         currentCharacterType = CharacterType.None;
-
 
         _openAI = new OpenAIApi(openAiKey.GetKey());
         Init();
@@ -519,7 +521,7 @@ public class AIThing : MonoBehaviour
         string currentTopic = LoadCurrentTopic();
         Debug.Log(">> currentTopic " + currentTopic);
 
-        // Check f the topic contains a YouTube lin
+        // TODO: Handle request for meshup with Youtube song
         if (topic.Contains("sings https://www.youtube.com/watch?v="))
         {
             string[] topicParts = topic.Split(new string[] { " sings https://www.youtube.com/watch?v=" }, StringSplitOptions.None);
@@ -1026,14 +1028,15 @@ public class AIThing : MonoBehaviour
 
     private IEnumerator HandleSuccessfulTTSRequest2(Dialogue2 d)
     {
-        if (CharacterManager.Instance.GetCharacterByName(d.character) != null)
+        Character speakingCharacter = CharacterManager.Instance
+            .GetCharacterByName(d.character);
+        if (speakingCharacter != null)
         {
-            Character speakingCharacter = CharacterManager.Instance.GetCharacterByName(d.character);
-
             // Update previous and current character
-            // previousCharacterType = currentCharacterType;
+            previousCharacterType = currentCharacterType;
             currentCharacterType = speakingCharacter.type;
-            // CameraManager.Instance.FocusOn(speakingCharacter.transform);
+            CameraManager.Instance
+                .FocusOn(speakingCharacter.transform);
             // OnEpisodeStart?.Invoke();
 
             // Turn the current speaker towards the previous speaker

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[CreateAssetMenu(fileName ="New Intro Card data",menuName ="AiSponge/Intro Card/New Card")]
+[CreateAssetMenu(fileName ="New Intro Card data", menuName ="AIStream/Intro Card/New Card")]
 public class IntroCardData : ScriptableObject
 {
     [Header("Loading Data")]

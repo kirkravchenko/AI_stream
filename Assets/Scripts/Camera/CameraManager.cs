@@ -6,10 +6,16 @@ using UnityEngine;
 public class CameraManager : MonoBehaviour
 {
     private static CameraManager instance;
-    public static CameraManager Instance { get { return instance; } }
+    public static CameraManager Instance 
+    { 
+        get { return instance; } 
+    }
 
     private CinemachineVirtualCamera vCam;
-    public CinemachineVirtualCamera VirtualCamera { get { return vCam; } }
+    public CinemachineVirtualCamera VirtualCamera 
+    { 
+        get { return vCam; } 
+    }
 
     private Transform cameraPointofInterestTransform;
     private void Awake()
@@ -33,10 +39,13 @@ public class CameraManager : MonoBehaviour
     private void InitCamera(PointOfInterest poe)
     {
         cameraPointofInterestTransform = poe.cameraLocation;
-        vCam.transform.position = cameraPointofInterestTransform.position;
-        vCam.transform.rotation = cameraPointofInterestTransform.rotation;
+        vCam.transform.position = 
+            cameraPointofInterestTransform.position;
+        vCam.transform.rotation = 
+            cameraPointofInterestTransform.rotation;
 
-        var transposer = vCam.GetCinemachineComponent<CinemachineTransposer>();
+        var transposer = 
+            vCam.GetCinemachineComponent<CinemachineTransposer>();
         transposer.m_FollowOffset = poe.cameraSettings.followOffset;
         vCam.m_Lens.NearClipPlane = poe.cameraSettings.nearClipPlane;
     }

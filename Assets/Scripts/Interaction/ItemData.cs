@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Item",menuName ="AiSponge/Item/New Item")]
+[CreateAssetMenu(fileName = "New Item", menuName ="AIStream/Item/New Item")]
 public class ItemData : ScriptableObject
 {
     public string itemName;
