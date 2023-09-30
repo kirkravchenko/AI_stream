@@ -679,13 +679,13 @@ public class AIThing : MonoBehaviour
         character = "";
         Character assignedCharacter = null;
         //Make a exception for narrator as we dont spawn him like other characters
-        if (line.StartsWith("Рассказчик"))
-        {
-            voiceModelUuid = "ru-RU-DmitryNeural";
-            textToSay = Regex.Split(line, ":")[1];
-            character = "Narrator";
-            return true;
-        }
+        // if (line.StartsWith("Рассказчик"))
+        // {
+        //     voiceModelUuid = "ru-RU-DmitryNeural";
+        //     textToSay = Regex.Split(line, ":")[1];
+        //     character = "Narrator";
+        //     return true;
+        // }
 
         // try
         // {

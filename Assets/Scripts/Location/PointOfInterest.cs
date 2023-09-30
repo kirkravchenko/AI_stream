@@ -39,6 +39,7 @@ public class PointOfInterest : MonoBehaviour
         public Transform squidwardPoint;
         public Transform mrKrabsPoint;
         public Transform locationSpecialPoint;
+        public Transform narratorSpawnPoint;
     }
     [System.Serializable]
     public enum PointName

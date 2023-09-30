@@ -76,7 +76,15 @@ public class LocationManager : MonoBehaviour
                     .TryGetComponent(out Character characterScript)
             )
             {
-                if (characterScript.type == CharacterType.Squidward)
+                if (characterScript.type == CharacterType.Narrator)
+                {
+                    spawnPoint = SelectedPoint.specialSpawnpoints
+                        .narratorSpawnPoint != null ? 
+                            SelectedPoint.specialSpawnpoints
+                                .narratorSpawnPoint : SelectedPoint.
+                                    GetAvailableSpawnpoint();
+                }
+                else if (characterScript.type == CharacterType.Squidward)
                 {
                     spawnPoint = SelectedPoint.specialSpawnpoints
                         .squidwardPoint != null ? 
