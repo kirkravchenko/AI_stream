@@ -93,7 +93,6 @@ public class IntroController : MonoBehaviour
     private void SceneReloaded()
     {
         if (generatedIntroCard != null) return;
-
         Display();
     }
 

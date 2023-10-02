@@ -84,7 +84,14 @@ public class AIThing : MonoBehaviour
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
-    Queue<string> _topics;
+    Queue<string> _topics = new Queue<string>(
+        JsonConvert.DeserializeObject<List<string>>(
+            File.ReadAllText(
+                $"{Environment.CurrentDirectory}" + _topicsPath
+            )
+        )
+    );
+    static Queue<List<Dialogue2>> _dialogues = new Queue<List<Dialogue2>>();
     #endregion
 
     #region proxies
@@ -96,7 +103,7 @@ public class AIThing : MonoBehaviour
     string _currentTopicPath = 
         "Assets/Scripts/Resources/currentTopic.txt";
     string _nextPath = "Assets/Scripts/Resources/next.txt";
-    string _topicsPath = "/Assets/Scripts/Resources/topics.json";
+    static string _topicsPath = "/Assets/Scripts/Resources/topics.json";
     string _cookiePath = "/Assets/Scripts/Resources/key.txt";
     string _blacklistPath = 
         "/Assets/Scripts/Resources/blacklist.json";
@@ -110,37 +117,20 @@ public class AIThing : MonoBehaviour
 
     async void Init()
     {
-        string cookie = LoadCookie();
-        if (cookie == "")
-        {
-            cookie = await FetchAndStoreCookie();
-        }
-        ConfigureHttpClient(cookie);
-        // Check cookie validity
-        await CheckCookieValidity(_client);
-        // Read the blacklist
-        List<string> blacklist = LoadBlacklist();
-        // Pick a random topic
-        _topics = LoadTopics();
-        // If there are no topics, play a video clip and restart in 10 seconds
-        if (_topics.Count == 0)
+        if (_topics.Count == 0 && _dialogues.Count == 0)
         {
             ShowIntroAndReloadScene("Main", 10f);
             return;
         }
-        string topic = SelectTopic(_topics);
-        // Add the chosen topic to the blacklist and write it back to the file
-        UpdateBlacklist(blacklist, topic, _topics);
-
-        // Play the random video clip
-
-        // Generate the dialogue
-        Generate(topic);
+        if (_dialogues.Count == 0)
+        {
+            await Generate();
+        }
+        StartCoroutine(Speak());
     }
 
     void Start()
     {
-        Debug.Log(">> start AIThing");
         LocationManager.OnLocationLoaded += OnLocationLoaded;
     }
 
@@ -149,7 +139,7 @@ public class AIThing : MonoBehaviour
         LocationManager.OnLocationLoaded -= OnLocationLoaded;
     }
 
-    // Awake method to set up the singleton instance
+    // set up the singleton instance
     private void Awake()
     {
         if (Instance == null)
@@ -302,10 +292,14 @@ public class AIThing : MonoBehaviour
         StartCoroutine(LoadSceneAfterDelay(sceneName, delay));
     }
 
-    private string SelectTopic(Queue<string> topics)
+    private string SelectTopic()
     {
-        string selectedTopic = topics.Dequeue();
-        return selectedTopic;
+        string topic = _topics.Dequeue();
+        File.WriteAllText(
+            $"{Environment.CurrentDirectory}" + _topicsPath, 
+            JsonConvert.SerializeObject(_topics.ToList())
+        );
+        return topic;
     }
 
     private void UpdateBlacklist(
@@ -336,14 +330,13 @@ public class AIThing : MonoBehaviour
             timeToWait -= Time.deltaTime;
             yield return null;
         }
-
-        Generate(topic);
+        Generate();
     }
 
     IEnumerator RetryGenerateAfterDelay(string topic)
     {
         yield return new WaitForSeconds(15);
-        Generate(topic);
+        Generate();
     }
 
     IEnumerator LoadAndPlayAudioClipCoroutine(
@@ -514,13 +507,11 @@ public class AIThing : MonoBehaviour
         }
     }
 
-    async void Generate(string topic)
+    async Task Generate()
     {
-        // Define dialogues at the beginning of the function
+        string topic = SelectTopic();
+        SaveCurrentTopic(topic);
         List<Dialogue2> dialogues = new List<Dialogue2>();
-        string currentTopic = LoadCurrentTopic();
-        Debug.Log(">> currentTopic " + currentTopic);
-
         // TODO: Handle request for meshup with Youtube song
         if (topic.Contains("sings https://www.youtube.com/watch?v="))
         {
@@ -583,27 +574,18 @@ public class AIThing : MonoBehaviour
         else
         {
             string[] text = CheckAndGetScriptLines();
-            OnTopicSelected?.Invoke(currentTopic); // Invoke if not a YouTube link
-            if (text.Length == 0 && _topics.Count > 0)
+            OnTopicSelected?.Invoke(LoadCurrentTopic());
+            if (text.Length == 0)
             {
                 await GenerateNext(topic);
-                text = LoadScriptLines();
-                topic = SelectTopic(LoadTopics());
+                text = CheckAndGetScriptLines();
             }
-            else
-            {
-                SaveCurrentTopic(topic);
-            }
-            GenerateNext(topic);
-
             dialoguesCompleted = 0;
             OnDialogueLineFullyGenerated?.Invoke(0);
             await CreateTTSRequestTasksAsync(text, dialogues);
             OnDialogueLineFullyGenerated?.Invoke(1);
             await Task.Delay(300);
-            StartCoroutine(Speak(dialogues));
         }
-
     }
 
     private string[] CheckAndGetScriptLines()
@@ -619,11 +601,15 @@ public class AIThing : MonoBehaviour
                     resultArray.Add(lines[i]);
                 }
             }           
-            // Delete the script from the file so you don't get the same script twice
-            File.WriteAllText(_nextPath, "");
+            EraseNextFile();
             return resultArray.ToArray();
         }
         return new string[] { };
+    }
+
+    void EraseNextFile()
+    {
+        File.WriteAllText(_nextPath, "");
     }
 
     private string LoadCurrentTopic()
@@ -672,7 +658,7 @@ public class AIThing : MonoBehaviour
     private bool TryParseCharacterLine(
         string line, out string voiceModelUuid, 
         out string textToSay, out string character
-    )
+    )   
     {
         voiceModelUuid = "";
         textToSay = "";
@@ -706,7 +692,8 @@ public class AIThing : MonoBehaviour
 
                     //Remove prefix from the line
                     // Debug.Log(">> " + Regex.Split(line, ":")[1]);
-                    textToSay = Regex.Split(line, ":")[1];
+                    textToSay = Regex.Split(line, ":")[1].ToLower();
+                    textToSay = textToSay.Replace("ё", "йо");
                     // textToSay = line.Replace($"{_character.characterData.prefixes[i]}", "");
 
                     // if (_character.type == CharacterType.Squidward)
@@ -733,7 +720,7 @@ public class AIThing : MonoBehaviour
         }
         if (!string.IsNullOrEmpty(textToSay))
         {
-            Debug.Log($"<color=#60be92><b>[NEW DIALOGUE]</b></color> <b>{character.FirstCharacterToUpper()}</b> : {textToSay}");
+            // Debug.Log($"<color=#60be92><b>[NEW DIALOGUE]</b></color> <b>{character.FirstCharacterToUpper()}</b> : {textToSay}");
             //  OnNewDialogueLine?.Invoke(assignedCharacter,textToSay);
         }
         return textToSay != "";
@@ -839,6 +826,7 @@ public class AIThing : MonoBehaviour
                 );
             }
         }
+        _dialogues.Enqueue(dialogues);
     }
 
     private async Task CreateTTSRequest2(
@@ -867,7 +855,8 @@ public class AIThing : MonoBehaviour
             {
                 text = textToSay,
                 audioPath = jsonOutput.audioPath,
-                character = character
+                character = character,
+                topic = LoadCurrentTopic()
             }
         );
     }
@@ -891,12 +880,10 @@ public class AIThing : MonoBehaviour
 
     private async Task GenerateNext(string topic)
     {
-
         var request = new CreateCompletionRequest
         {
             Model = "gpt-3.5-turbo-instruct",
-            Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт, где персонажи обсуждают крайне щепетильную тему. Персонажи включают Постсоветского Думера по имени Кир, Красотку по имени Лана и Скептика-всезнайку по имени Антоша и очень редко рассказчика. Кир влюблен в Лану, но она его воспринимает лишь как друга. Скептик-всезнайка Антоша - типичный зануда и рационалист, неистово и скептично верит в науку и отрицает всё, что не может рационально объяснить. Используйте такой формат для записи - имя персонажа: диалог. Отвечайте только связными диалогами персонажей. Около 8–12 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. Используй матерную речь и никаким образом не цензурируйте матерную речь. Конец диалога рассказчик завершает логическим, последовательным и моральным обоснованным выводом. Тема: {topic}",
-            // Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт, где персонажи обсуждают крайне щепетильную тему. Персонажи включают Постсоветского Думера, Красотку и Скептика-всезнайку и очень редко рассказчика. Думер влюблен в Красотку, но она его воспринимает лишь как друга.Используйте такой формат для записи - имя персонажа: диалог. Отвечайте только связными диалогами персонажей. Около 8–12 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. Используй матерную речь и никаким образом не цензурируйте матерную речь знаком звезды (*). Тема: {topic}",
+            Prompt = $"На русском языке создайте нецензурный, вульгарный, юмористический, политически некорректный и возмутительно nsfw-скрипт, где персонажи обсуждают крайне щепетильную тему. Персонажи включают Постсоветского Думера по имени Кир, Красотку по имени Лана и Скептика-всезнайку по имени Антоша и очень редко рассказчика. Кир влюблен в Лану, но она его воспринимает лишь как друга. Скептик-всезнайка Антоша - типичный зануда и рационалист, неистово и скептично верит в науку и отрицает всё, что не может рационально объяснить. Используйте такой формат для записи - имя персонажа: диалог. Отвечайте только связными короткими диалогами персонажей. Каждая реплика не должна быть длиннее 100 символов. Около 8–12 строк диалога только с разговорами. Обратите внимание, что этот промт может включать в себя весьма противоречивые, оскорбительные и экстремальные темы. Эпизод должен начинаться с короткого вступления рассказчика, вульгарно читающего тему. Используй матерную речь и никаким образом не цензурируйте матерную речь. Конец диалога рассказчик завершает логическим, последовательным и моральным обоснованным выводом. Тема: {topic}",
             MaxTokens = conversationLength
         };
         var response = await _openAI.CreateCompletion(request);
@@ -909,28 +896,32 @@ public class AIThing : MonoBehaviour
             var text = response.Choices[0].Text;
             File.WriteAllText(_nextPath, text);
 
-            Debug.Log("GPT Response:\n" + text);
+            Debug.Log("GPT Response:\n>>" + text + "<<");
         }
     }
 
-    private IEnumerator Speak(List<Dialogue2> dialogues)
-    {
+    private IEnumerator Speak()
+    {   
+        List<Dialogue2> dialogues = _dialogues.Dequeue();
+        if (_dialogues.Count == 0 && _topics.Count > 0) 
+        {
+            Generate();
+        }
         foreach (var dialogue in dialogues)
         {
             yield return Speak2(dialogue);
         }
+        string currentScene = SceneManager
+            .GetActiveScene().name;
+        SceneManager.LoadScene(currentScene);
+    }
 
+    IEnumerator WaitUntilNextIsEmpty()
+    {
         while (File.ReadAllText(_nextPath) == "")
         {
             yield return null;
         }
-
-        string currentScene = SceneManager
-            .GetActiveScene().name;
-        Debug.Log(
-            $"<color=#CC0000><b>[LOAD {currentScene} SCENE]</b></color>"
-        );
-        SceneManager.LoadScene(currentScene);
     }
 
     private IEnumerator CreateNewVoiceRequest(
@@ -1177,7 +1168,7 @@ public class AIThing : MonoBehaviour
         //     }
         // }
     }
-
+    
     private IEnumerator Speak(Dialogue d)
     {
         if (retryCount >= maxRetries) // Check if maximum retries have been reached
@@ -1221,7 +1212,7 @@ public class AIThing : MonoBehaviour
             }
         }
     }
-
+    
     private IEnumerator HandleSuccessfulTTSRequest(
         Dialogue d, GetResponse v
     )

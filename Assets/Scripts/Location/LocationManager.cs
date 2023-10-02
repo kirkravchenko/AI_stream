@@ -28,7 +28,6 @@ public class LocationManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log(">> start LocationManager");
         ChooseLocation();
         LoadLocation();
     }
@@ -124,7 +123,6 @@ public class LocationManager : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log(">> LocatoinManager Awake");
         if (instance == null) instance = this;
         else Destroy(gameObject);
     }
