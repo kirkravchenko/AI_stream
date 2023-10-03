@@ -80,7 +80,7 @@ public class AIThing : MonoBehaviour
 
     #region dialogues
     // [SerializeField, Range(150, 1200)] 
-    int conversationLength = 1000;
+    int conversationLength = 200;
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
@@ -117,6 +117,7 @@ public class AIThing : MonoBehaviour
 
     async void Init()
     {
+        Debug.Log(">> AIThing Init");
         if (_topics.Count == 0 && _dialogues.Count == 0)
         {
             ShowIntroAndReloadScene("Main", 10f);
@@ -131,6 +132,7 @@ public class AIThing : MonoBehaviour
 
     void Start()
     {
+        Debug.Log(">> AIThing Start");
         LocationManager.OnLocationLoaded += OnLocationLoaded;
     }
 
@@ -142,6 +144,7 @@ public class AIThing : MonoBehaviour
     // set up the singleton instance
     private void Awake()
     {
+        Debug.Log(">> AIThing Awake");
         if (Instance == null)
         {
             Instance = this;
@@ -1028,7 +1031,9 @@ public class AIThing : MonoBehaviour
             currentCharacterType = speakingCharacter.type;
             CameraManager.Instance
                 .FocusOn(speakingCharacter.transform);
-            // OnEpisodeStart?.Invoke();
+            
+            yield return new WaitForSeconds(3);
+            OnEpisodeStart?.Invoke();
 
             // Turn the current speaker towards the previous speaker
             // if (previousCharacterType != CharacterType.None)

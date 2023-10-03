@@ -1,0 +1,19 @@
+openapi: 3.0.0
+info:
+  title: "TTS Flask REST API"
+  description: "An API to convert text to sound"
+  version: "1.0.0"
+
+servers:
+  - url: "/api"
+  
+paths:
+  /tts:
+    get:
+      operationId: "tts.tts"
+      tags:
+        - "tts"
+      summary: "Converts (revoices) text to sound"
+      responses:
+        "200":
+          description: "Successfully converted text to sound"
