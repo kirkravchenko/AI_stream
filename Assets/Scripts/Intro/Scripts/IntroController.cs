@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -34,12 +35,11 @@ public class IntroController : MonoBehaviour
     {
         HideIntro();
     }
-    //
+
     private bool hidden = false;
 
     private void Awake()
     {
-        Debug.Log(">> IntroController Awake");
         if (instance == null)
         {
             instance = this;
@@ -54,7 +54,6 @@ public class IntroController : MonoBehaviour
     
     private void Start()
     {
-        Debug.Log(">> IntroController Start");
         AIThing.OnTopicSelected += Display;
         AIThing.OnSceneReload += SceneReloaded;
         AIThing.OnEpisodeStart += HideIntro;
@@ -91,7 +90,7 @@ public class IntroController : MonoBehaviour
         introCard.UpdateLoadingProgress(progress);
     }
 
-    private void SceneReloaded()
+    void SceneReloaded()
     {
         if (generatedIntroCard != null) return;
         Display();
@@ -107,11 +106,10 @@ public class IntroController : MonoBehaviour
     
     public void Display(string topicName = "")
     {
-        if (topicName == currentTopicName 
-            && generatedIntroCard != null)
-        {
-            Hide(false, true);
-        }
+        if (
+            topicName == currentTopicName && 
+            generatedIntroCard != null
+        ) return;
         else
         {
             currentTopicName = topicName;
@@ -164,12 +162,11 @@ public class IntroController : MonoBehaviour
         bool stopMusic = true, bool episodeStarted = false
     )
     {
-        Debug.Log(">> Inside Hide, stopMusic: " + stopMusic + ",  episodeStarted: " + episodeStarted);
         if (episodeStarted) return;
         if (generatedIntroCard == null) return;
         if (stopMusic) StopMusic();
         CardObject[] cardObject = FindObjectsOfType<CardObject>();
-        if(cardObject.Length > 0)
+        if (cardObject.Length > 0)
         {
             foreach (CardObject card in cardObject)
             {
@@ -247,7 +244,8 @@ public class IntroController : MonoBehaviour
 
     private IntroCard NewIntroCard(string topicName)
     {
-        IntroCardData cardData = cardDatas[UnityEngine.Random.Range(0, cardDatas.Length)];
+        IntroCardData cardData = 
+            cardDatas[UnityEngine.Random.Range(0, cardDatas.Length)];
         IntroCard newCard = new IntroCard(topicName, cardData);
         return newCard;
     }

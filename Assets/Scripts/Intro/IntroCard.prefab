@@ -279,8 +279,8 @@ MonoBehaviour:
   m_text: "Sledujushaja tema uzhe v mozgah \u0442\u0435\u043C\u0430 \u0443\u0436\u0435
     \u0432 \u043C\u043E\u0437\u0433\u0430\u0445"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: e7030a25b47894b95a2f18de22a98180, type: 2}
-  m_sharedMaterial: {fileID: 1878544919474967900, guid: e7030a25b47894b95a2f18de22a98180, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 2286d324c094d410d826f7c005525770, type: 2}
+  m_sharedMaterial: {fileID: 8065517049596665199, guid: 2286d324c094d410d826f7c005525770, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

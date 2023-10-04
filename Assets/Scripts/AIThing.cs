@@ -40,6 +40,7 @@ public class AIThing : MonoBehaviour
     public static AIThing Instance;
     int retryCount = 0;
     const int maxRetries = 13;
+    int introTimeout = 3000;
     #endregion
 
     #region credentials
@@ -80,7 +81,7 @@ public class AIThing : MonoBehaviour
 
     #region dialogues
     // [SerializeField, Range(150, 1200)] 
-    int conversationLength = 200;
+    int conversationLength = 150;
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
@@ -117,7 +118,6 @@ public class AIThing : MonoBehaviour
 
     async void Init()
     {
-        Debug.Log(">> AIThing Init");
         if (_topics.Count == 0 && _dialogues.Count == 0)
         {
             ShowIntroAndReloadScene("Main", 10f);
@@ -127,12 +127,13 @@ public class AIThing : MonoBehaviour
         {
             await Generate();
         }
+        OnTopicSelected?.Invoke(LoadCurrentTopic());
+        await freezeIntro();
         StartCoroutine(Speak());
     }
 
     void Start()
     {
-        Debug.Log(">> AIThing Start");
         LocationManager.OnLocationLoaded += OnLocationLoaded;
     }
 
@@ -144,13 +145,17 @@ public class AIThing : MonoBehaviour
     // set up the singleton instance
     private void Awake()
     {
-        Debug.Log(">> AIThing Awake");
         if (Instance == null)
         {
             Instance = this;
         }
         else Destroy(gameObject);
         OnSceneReload?.Invoke();
+    }
+
+    async Task freezeIntro()
+    {
+        await Task.Delay(introTimeout);
     }
 
     private void TeleportNarratorToSquidward()
@@ -899,7 +904,7 @@ public class AIThing : MonoBehaviour
             var text = response.Choices[0].Text;
             File.WriteAllText(_nextPath, text);
 
-            Debug.Log("GPT Response:\n>>" + text + "<<");
+            Debug.Log(">> Display GPT Response:\n>>" + text + "<<");
         }
     }
 
@@ -914,9 +919,7 @@ public class AIThing : MonoBehaviour
         {
             yield return Speak2(dialogue);
         }
-        string currentScene = SceneManager
-            .GetActiveScene().name;
-        SceneManager.LoadScene(currentScene);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     IEnumerator WaitUntilNextIsEmpty()
@@ -1026,13 +1029,10 @@ public class AIThing : MonoBehaviour
             .GetCharacterByName(d.character);
         if (speakingCharacter != null)
         {
-            // Update previous and current character
             previousCharacterType = currentCharacterType;
             currentCharacterType = speakingCharacter.type;
             CameraManager.Instance
                 .FocusOn(speakingCharacter.transform);
-            
-            yield return new WaitForSeconds(3);
             OnEpisodeStart?.Invoke();
 
             // Turn the current speaker towards the previous speaker
