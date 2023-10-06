@@ -5,13 +5,17 @@ using UnityEngine.TextCore.Text;
 
 public class CharacterManager : MonoBehaviour
 {
+
+    #region properties
     private static CharacterManager instance;
     public static CharacterManager Instance { get { return instance; } }
     public GameObject[] characterPrefabs;
     private List<GameObject> spawnedCharacters;
-    [SerializeField] private Dictionary<CharacterType, Character> charactersDictionary = new Dictionary<CharacterType, Character>();
+    [SerializeField] 
+    private Dictionary<CharacterType, Character> charactersDictionary = new Dictionary<CharacterType, Character>();
     private PointOfInterest activePoe;
     public PointOfInterest GetActivePoe { get { return activePoe; } }
+    #endregion
 
     private void Awake()
     {
@@ -25,7 +29,9 @@ public class CharacterManager : MonoBehaviour
         LocationManager.OnLocationLoaded += SetupCharacters;
     }
 
-    private void SetupCharacters(List<GameObject> characters, PointOfInterest poe)
+    private void SetupCharacters(
+        List<GameObject> characters, PointOfInterest poe
+    )
     {
         spawnedCharacters = characters;
         Setup(poe);
@@ -36,19 +42,17 @@ public class CharacterManager : MonoBehaviour
         activePoe = poe;
         foreach (GameObject spawnedCharacter in spawnedCharacters)
         {
-            if (spawnedCharacter.TryGetComponent(out Character character))
+            if (
+                spawnedCharacter
+                    .TryGetComponent(out Character character)
+            )
             {
                 charactersDictionary.Add(character.type, character);
-
-                //Assign audio effect to characters based on selected location - bigger echo in chumBucket etc..
                 if (character.TryGetComponent(out AudioVoice voice))
                 {
-                    Debug.Log(spawnedCharacter.name);
                     voice.SetReverbPreset(poe.audioEffect);
                 }
-
             }
-
         }
 
         //Assign correct characters paths to created paths of selected Point of Interest
@@ -67,30 +71,38 @@ public class CharacterManager : MonoBehaviour
         }
     }
 
-    public void SetAudioDistortionFilterForSpeakingCharacter(VoiceModifier.DistortionPreset distortionPreset = VoiceModifier.DistortionPreset.Normal)
+    public void SetAudioDistortionFilterForSpeakingCharacter(
+        VoiceModifier.DistortionPreset distortionPreset = 
+            VoiceModifier.DistortionPreset.Normal
+    )
     {
         foreach (Character character in charactersDictionary.Values)
         {
             if (character.isSpeaking)
             {
-                if (character.TryGetComponent(out VoiceModifier voice))
+                if (character
+                    .TryGetComponent(out VoiceModifier voice)
+                )
                 {
                     voice.SetDistortionPreset(distortionPreset);
                     return;
                 }
             }
-
-
         }
     }
 
-    public void SetAudioReverbFilterForSpeakingCharacter(VoiceModifier.ReverbPreset reverbPreset = VoiceModifier.ReverbPreset.Default)
+    public void SetAudioReverbFilterForSpeakingCharacter(
+        VoiceModifier.ReverbPreset reverbPreset = 
+            VoiceModifier.ReverbPreset.Default
+    )
     {
         foreach (Character character in charactersDictionary.Values)
         {
             if (character.isSpeaking)
             {
-                if (character.TryGetComponent(out VoiceModifier voice))
+                if (character
+                    .TryGetComponent(out VoiceModifier voice)
+                )
                 {
                     voice.SetReverbPreset(reverbPreset);
                     return;
@@ -105,7 +117,9 @@ public class CharacterManager : MonoBehaviour
         {
             if (character.isSpeaking)
             {
-                if (character.TryGetComponent(out VoiceModifier voice))
+                if (character
+                    .TryGetComponent(out VoiceModifier voice)
+                )
                 {
                     voice.ToggleLowPassFilter(true);
                     return;
@@ -116,7 +130,7 @@ public class CharacterManager : MonoBehaviour
 
     public void ResetSpeakingFlagForCharacters()
     {
-        foreach(Character character in charactersDictionary.Values)
+        foreach (Character character in charactersDictionary.Values)
             character.isSpeaking = false;
     }
 
@@ -127,10 +141,13 @@ public class CharacterManager : MonoBehaviour
             if (character.TryGetComponent(out VoiceModifier voice))
             {
                 if (character.type == CharacterType.Squidward)
-                    voice.SetDistortionPreset(VoiceModifier.DistortionPreset.Earrape);
+                    voice.SetDistortionPreset(
+                        VoiceModifier.DistortionPreset.Earrape
+                    );
                 else
-                    voice.SetDistortionPreset(VoiceModifier.DistortionPreset.Normal);
-
+                    voice.SetDistortionPreset(
+                        VoiceModifier.DistortionPreset.Normal
+                    );
                 voice.SetReverbPreset(activePoe.audioEffect);
                 voice.ToggleHighPassFilter(false);
                 voice.ToggleLowPassFilter(false);
@@ -165,7 +182,6 @@ public class CharacterManager : MonoBehaviour
         return GetCharacterType(character);
     }
 
-    //Find Character by character type
     public Character GetCharacterByType(CharacterType type)
     {
         if (charactersDictionary.ContainsKey(type))
@@ -173,10 +189,12 @@ public class CharacterManager : MonoBehaviour
         return null;
     }
 
-    //Find CharacterType by Character 
     public CharacterType GetCharacterType(Character character)
     {
-        foreach (KeyValuePair<CharacterType, Character> pair in charactersDictionary)
+        foreach (
+            KeyValuePair<CharacterType, Character> pair in 
+            charactersDictionary
+        )
         {
             if (pair.Value == character)
             {

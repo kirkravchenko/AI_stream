@@ -26,6 +26,12 @@ public class LocationManager : MonoBehaviour
         [Range(0, 100)] public float chanceRate;
     }
 
+    private void Awake()
+    {
+        if (instance == null) instance = this;
+        else Destroy(gameObject);
+    }
+
     private void Start()
     {
         ChooseLocation();
@@ -34,10 +40,8 @@ public class LocationManager : MonoBehaviour
 
     public void ChooseLocation()
     {
-        if (PointsOfInterest == null || PointsOfInterest.Length == 0)
-        {
-            return;
-        }
+        if (PointsOfInterest == null || 
+                PointsOfInterest.Length == 0) return;
 
         // Calculate the total chance
         float totalChance = PointsOfInterest
@@ -109,8 +113,6 @@ public class LocationManager : MonoBehaviour
             spawnedCharacters.Add(newCharacter);
 
         }
-        //Callback once its done.
-        Debug.Log(OnLocationLoaded == null);
         OnLocationLoaded?.Invoke(spawnedCharacters, SelectedPoint);
     }
 
@@ -119,11 +121,5 @@ public class LocationManager : MonoBehaviour
         chance /= 100;
         if (UnityEngine.Random.value < chance) return true;
         return false;
-    }
-
-    private void Awake()
-    {
-        if (instance == null) instance = this;
-        else Destroy(gameObject);
     }
 }

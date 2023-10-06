@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Character : BaseCharacter
 {
+
+    #region properties
     [Space(10)]
     public Data characterData;
 
@@ -26,8 +28,8 @@ public class Character : BaseCharacter
     private float interactionTimer;
     private bool CanInteract => 
         Time.time > interactionTimer + interactionCooldown;
+    #endregion
 
-    // Basically it's an Awake() function
     public override void Init()
     {
         if (audioSource == null) 

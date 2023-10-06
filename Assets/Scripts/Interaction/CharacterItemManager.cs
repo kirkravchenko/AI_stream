@@ -10,10 +10,7 @@ public class CharacterItemManager : MonoBehaviour
 
     [SerializeField] Character character;
     [SerializeField] ItemSlot[] itemSlots;
-
-
     public PreEquippedItems[] preEquippedItems;
-
     [System.Serializable]
     public struct PreEquippedItems
     {
@@ -34,6 +31,7 @@ public class CharacterItemManager : MonoBehaviour
         }
         return false;
     }
+    
     private ItemSlot GetSlot(ItemData itemData)
     {
         foreach (var slot in itemSlots)
@@ -43,6 +41,7 @@ public class CharacterItemManager : MonoBehaviour
         }
         return null;
     }
+    
     private ItemSlot GetSlot(ItemSlotType slotType)
     {
         foreach (var slot in itemSlots)
@@ -52,10 +51,12 @@ public class CharacterItemManager : MonoBehaviour
         }
         return null;
     }
+    
     public bool IsSlotEmpty(ItemData itemData)
     {
         return IsSlotEmpty(itemData.slotType);
     }
+    
     private void Awake()
     {
         if (character == null)
@@ -64,7 +65,7 @@ public class CharacterItemManager : MonoBehaviour
                 Debug.LogError("Missing reference to character script!");
         }
     }
-    ///
+    
     private void Start()
     {
         //check if we have any items pre-equipped
@@ -80,6 +81,7 @@ public class CharacterItemManager : MonoBehaviour
     public void EquipItem(ItemData itemData)
     {
         if (itemSlots.Length > 0)
+        {
             foreach (var slot in itemSlots)
             {
                 if (slot.CanEquipItem(itemData))
@@ -89,7 +91,9 @@ public class CharacterItemManager : MonoBehaviour
                 }
                 
             }
+        }    
     }
+    
     public void UnequipItem(ItemData itemData)
     {
         if (itemSlots.Length > 0)

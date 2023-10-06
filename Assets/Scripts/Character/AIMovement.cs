@@ -3,16 +3,20 @@ using UnityEngine.AI;
 
 public class AIMovement : MonoBehaviour
 {
-    public float movementInterval = 30f;  // Interval between movements
-    public float movementRadius = 1f;    // Radius within which the character will move
+    #region properties
+    // Interval between movements
+    public float movementInterval = 30f;
+    public float movementRadius = 1f;
     public Transform speakingCharacterTransform;
     private NavMeshAgent agent;
     private float timer;
     private bool canMove = true;
     private bool isCameraFollowing = false;
+    #endregion
 
     private void Start()
     {
+        Debug.Log(">> AIMovement Start()");
         agent = GetComponent<NavMeshAgent>();
         timer = movementInterval;
     }
@@ -22,7 +26,6 @@ public class AIMovement : MonoBehaviour
         if (!isCameraFollowing)
         {
             timer -= Time.deltaTime;
-
             if (canMove && timer <= 0f)
             {
                 MoveRandomly();
@@ -33,12 +36,17 @@ public class AIMovement : MonoBehaviour
 
     private void MoveRandomly()
     {
-        Vector3 randomDirection = Random.insideUnitSphere * movementRadius;
+        Vector3 randomDirection = 
+            Random.insideUnitSphere * movementRadius;
         randomDirection += transform.position;
         NavMeshHit hit;
-
         // Find a valid random point on the NavMesh to move to
-        if (NavMesh.SamplePosition(randomDirection, out hit, movementRadius, NavMesh.AllAreas))
+        if (
+            NavMesh.SamplePosition(
+                randomDirection, out hit, 
+                movementRadius, NavMesh.AllAreas
+            )
+        )
         {
             agent.SetDestination(hit.position);
         }

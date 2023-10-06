@@ -81,7 +81,7 @@ public class AIThing : MonoBehaviour
 
     #region dialogues
     // [SerializeField, Range(150, 1200)] 
-    int conversationLength = 150;
+    int conversationLength = 300;
     string currentTopic;
     float dialoguesAmount;
     float dialoguesCompleted;
@@ -917,7 +917,7 @@ public class AIThing : MonoBehaviour
         }
         foreach (var dialogue in dialogues)
         {
-            yield return Speak2(dialogue);
+            yield return HandleSuccessfulTTSRequest2(dialogue);
         }
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -963,64 +963,30 @@ public class AIThing : MonoBehaviour
         Transform objectTransform, Transform speakerTransform
     )
     {
-        Vector3 direction = (speakerTransform.position - objectTransform.position).normalized;
+        Vector3 direction = 
+            (speakerTransform.position - 
+                objectTransform.position).normalized;
         direction.y = 0;
 
         if (direction != Vector3.zero)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            Quaternion targetRotation = 
+                Quaternion.LookRotation(direction);
 
-            while (Quaternion.Angle(objectTransform.rotation, targetRotation) > 0.05f)
+            while (
+                Quaternion.Angle(
+                    objectTransform.rotation, targetRotation
+                ) > 0.05f
+            )
             {
-                objectTransform.rotation = Quaternion.Slerp(objectTransform.rotation, targetRotation, Time.deltaTime * 2.0f);
+                objectTransform.rotation = 
+                    Quaternion.Slerp(
+                        objectTransform.rotation, targetRotation, 
+                        Time.deltaTime * 2.0f
+                    );
                 yield return null;
             }
         }
-    }
-
-    private IEnumerator Speak2(Dialogue2 d)
-    {
-        yield return HandleSuccessfulTTSRequest2(d);
-        // if (retryCount >= maxRetries) // Check if maximum retries have been reached
-        // {
-        //     Debug.LogWarning("Max retries reached, skipping dialogue");
-        //     OnDialogueLineFullyGenerated?.Invoke(-2);
-        //     retryCount = 0; // Reset the retry counter
-        //     // Add logic here to skip dialogue or handle the timeout as needed
-        //     yield break; // Exit the coroutine
-        // }
-        // var content = _client.GetAsync($"https://api.fakeyou.com/tts/job/{d.uuid}").Result.Content;
-        // var responseContent = content.ReadAsStringAsync().Result;
-        // var v = JsonConvert.DeserializeObject<GetResponse>(responseContent);
-        // Debug.Log(responseContent);
-
-        // if (v.state == null || v.state.status == "pending" || v.state.status == "started" || v.state.status == "attempt_failed")
-        // {
-        //     yield return new WaitForSeconds(1.5f);
-        //     retryCount++; // Increment retry counter
-        //     yield return Speak2(d);
-        // }
-        // else if (v.state.status == "complete_success")
-        // {
-        //     retryCount = 0; // Reset the retry counter
-        //     yield return HandleSuccessfulTTSRequest(d, v);
-        // }
-        // else
-        // {
-        //     string newUuid = null;
-        //     yield return CreateNewVoiceRequest(d, result => { newUuid = result; });
-
-        //     if (!string.IsNullOrEmpty(newUuid))
-        //     {
-        //         d.uuid = newUuid;
-        //         yield return Speak(d);
-        //     }
-        //     else
-        //     {
-        //         Debug.LogError("Failed to create new voice request");
-        //         OnDialogueLineFullyGenerated?.Invoke(-2);
-        //     }
-        // }
     }
 
     private IEnumerator HandleSuccessfulTTSRequest2(Dialogue2 d)
@@ -1035,20 +1001,31 @@ public class AIThing : MonoBehaviour
                 .FocusOn(speakingCharacter.transform);
             OnEpisodeStart?.Invoke();
 
-            // Turn the current speaker towards the previous speaker
-            // if (previousCharacterType != CharacterType.None)
-            // {
-            //     Character previousCharacter = CharacterManager.Instance.GetCharacterByType(previousCharacterType);
-            //     StartCoroutine(TurnToSpeaker(speakingCharacter.transform, previousCharacter.transform));
-            // }
+            if (previousCharacterType != CharacterType.None)
+            {
+                Character previousCharacter = 
+                    CharacterManager.Instance
+                        .GetCharacterByType(previousCharacterType);
+                StartCoroutine(
+                    TurnToSpeaker(
+                        speakingCharacter.transform, 
+                        previousCharacter.transform
+                    )
+                );
+            }
 
-            // yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(1);
 
-            // foreach (Character character in _characters)
-            // {
-            //     if (currentCharacterType == character.type) continue;
-            //     StartCoroutine(TurnToSpeaker(character.transform, speakingCharacter.transform));
-            // }
+            foreach (Character character in _characters)
+            {
+                if (currentCharacterType == character.type) continue;
+                StartCoroutine(
+                    TurnToSpeaker(
+                        character.transform, 
+                        speakingCharacter.transform
+                    )
+                );
+            }
         }
 
         if (subtitles != null)
@@ -1060,118 +1037,61 @@ public class AIThing : MonoBehaviour
             )
         {
             yield return uwr.SendWebRequest();
-            AudioClip downloadedClip = DownloadHandlerAudioClip
-                                        .GetContent(uwr);
+            AudioClip downloadedClip = 
+                DownloadHandlerAudioClip.GetContent(uwr);
             Character character = CharacterManager.Instance
                 .GetCharacterByName(d.character);
-            // TODO: for some reason sphereDoomer object is not found
-            // GameObject sphereDoomer = characterPrefabs[0];
-            // AudioSource audioSource = sphereDoomer.GetComponent<AudioSource>();
-            // string[] texts = {};
-            // List<Dialogue2> dialogue2s = new List<Dialogue2>();
-            // Task.Run()
-            // Task 1d = CreateTTSRequestTasksAsync(texts, dialogue2s);
+            CharacterManager.Instance
+                .ResetSpeakingFlagForCharacters();
 
-            // if (character.TryGetComponent(out AudioVoice voice))
-            // {
-
-            // }
             if (!audioSource)
             {
                 audioSource = GetComponent<AudioSource>();
                 if (!audioSource) 
                 {
-                    audioSource = gameObject
-                                    .AddComponent<AudioSource>();
+                    audioSource = 
+                        gameObject.AddComponent<AudioSource>();
                 }
             }
-            audioSource.clip = downloadedClip;
-            audioSource.Play();
+            if (character != null) 
+            {
+                if (character.TryGetComponent(out AudioVoice voice))
+                {
+                    voice.Init(downloadedClip);
+                    voice.Play();
+                    audioSource = voice.Source;
+                }
+                else
+                {
+                    audioSource.clip = downloadedClip;
+                    audioSource.bypassEffects = true;
+                    audioSource.bypassListenerEffects = true;
+                    audioSource.bypassReverbZones = true;
+                    audioSource.Play();
+                }
+                OnCharacterSpeaking?.Invoke(character, d.text);
+                character.StartSpeaking();
+            } else
+            {
+                IntroController.Instance.IntroNarrator(d.text);
+                audioSource.clip = downloadedClip;
+                audioSource.bypassEffects = true;
+                audioSource.bypassListenerEffects = true;
+                audioSource.bypassReverbZones = true;
+                audioSource.Play();
+            }
             float startTime = Time.time;
             while (audioSource.isPlaying && 
                     Time.time - startTime <= 60.0f)
             {
                 yield return null;
             }
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();
+                if (character != null) character.StopSpeaking();
+            }
         }
-
-        // using (var uwr = UnityWebRequestMultimedia.GetAudioClip($"https://storage.googleapis.com/vocodes-public{v.state.maybe_public_bucket_wav_audio_path}", AudioType.WAV))
-        // {
-        //     yield return uwr.SendWebRequest();
-        //     if (uwr.result == UnityWebRequest.Result.ConnectionError)
-        //     {
-        //         Debug.Log(uwr.error);
-        //     }
-        //     else
-        //     {
-        //         //NEW IMPLEMENTATION
-
-        //         //Grab audio and references
-        //         AudioClip downloadedClip = DownloadHandlerAudioClip.GetContent(uwr);
-        //         //d.character.
-        //         Character character = CharacterManager.Instance.GetCharacterByName(d.character);
-        //         CharacterManager.Instance.ResetSpeakingFlagForCharacters();
-
-        //         //Make sure audioSource is assigned
-        //         if (!audioSource)
-        //         {
-        //             audioSource = GetComponent<AudioSource>();
-        //             if (!audioSource) audioSource = gameObject.AddComponent<AudioSource>();
-        //         }
-
-
-        //         if (character != null)
-        //         {
-        //             //Use audioclip for gary or actual audio for anyone else
-        //             AudioClip selectedClip = character.type == CharacterType.Gary ? audioClips[0] : downloadedClip;
-        //             if (character.TryGetComponent(out AudioVoice voice))
-        //             {
-        //                 //Use new audio system
-        //                 voice.Init(selectedClip);
-        //                 voice.Play();
-        //                 audioSource = voice.Source;
-        //             }
-        //             else
-        //             {
-
-        //                 audioSource.clip = selectedClip;
-        //                 audioSource.bypassEffects = true;
-        //                 audioSource.bypassListenerEffects = true;
-        //                 audioSource.bypassReverbZones = true;
-        //                 audioSource.Play();
-        //             }
-        //             OnCharacterSpeaking?.Invoke(character, d.text);
-        //             character.StartSpeaking();
-        //         }
-        //         else
-        //         {
-        //             IntroController.Instance.IntroNarrator(d.text);
-
-        //             //Use old implementation if something goes wrong..
-        //             audioSource.clip = downloadedClip;
-        //             audioSource.bypassEffects = true;
-        //             audioSource.bypassListenerEffects = true;
-        //             audioSource.bypassReverbZones = true;
-        //             audioSource.Play();
-        //             Debug.LogWarning("[AIThing] Using old audio system for this character! ");
-        //         }
-
-
-        //         //Wait for audio to finish playing...
-        //         float startTime = Time.time;
-        //         while (audioSource.isPlaying && Time.time - startTime <= 60.0f)
-        //         {
-        //             yield return null;
-        //         }
-
-        //         if (audioSource.isPlaying)
-        //         {
-        //             //Stop audio and animation
-        //             audioSource.Stop();
-        //             if (character != null) character.StopSpeaking();
-        //         }
-        //     }
-        // }
     }
     
     private IEnumerator Speak(Dialogue d)
