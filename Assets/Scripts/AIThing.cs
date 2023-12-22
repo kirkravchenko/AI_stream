@@ -92,7 +92,15 @@ public class AIThing : MonoBehaviour
             )
         )
     );
+    Queue<OrderedDialogue> _dialoguesOrdered = new Queue<OrderedDialogue>(
+        JsonConvert.DeserializeObject<List<OrderedDialogue>>(
+            File.ReadAllText(
+                $"{Environment.CurrentDirectory}" + _dialoguesOrderedPath
+            )
+        )
+    );
     static Queue<List<Dialogue2>> _dialogues = new Queue<List<Dialogue2>>();
+    public bool IsTopicOrdered => LoadCurrentTopic().Contains("тема на заказ");
     #endregion
 
     #region proxies
@@ -105,6 +113,7 @@ public class AIThing : MonoBehaviour
         "Assets/Scripts/Resources/currentTopic.txt";
     string _nextPath = "Assets/Scripts/Resources/next.txt";
     static string _topicsPath = "/Assets/Scripts/Resources/topics.json";
+    static string _dialoguesOrderedPath = "/Assets/Scripts/Resources/next.json";
     string _cookiePath = "/Assets/Scripts/Resources/key.txt";
     string _blacklistPath = 
         "/Assets/Scripts/Resources/blacklist.json";
@@ -142,7 +151,6 @@ public class AIThing : MonoBehaviour
         LocationManager.OnLocationLoaded -= OnLocationLoaded;
     }
 
-    // set up the singleton instance
     private void Awake()
     {
         if (Instance == null)
@@ -293,6 +301,18 @@ public class AIThing : MonoBehaviour
                 );
     }
 
+        private Queue<string> LoadOrderedDialogues()
+    {
+        return new Queue<string>(
+                    JsonConvert.DeserializeObject<List<string>>(
+                        File.ReadAllText(
+                            $"{Environment.CurrentDirectory}" + 
+                            _dialoguesOrderedPath
+                        )
+                    )
+                );
+    }
+
     private void ShowIntroAndReloadScene(
         string sceneName, float delay
     )
@@ -308,6 +328,17 @@ public class AIThing : MonoBehaviour
             JsonConvert.SerializeObject(_topics.ToList())
         );
         return topic;
+    }
+
+        private string[] SelectOrderedDialogue()
+    {
+        OrderedDialogue dialogue = _dialoguesOrdered.Dequeue();
+        File.WriteAllText(
+            $"{Environment.CurrentDirectory}" + _dialoguesOrderedPath, 
+            JsonConvert.SerializeObject(_dialoguesOrdered.ToList())
+        );
+        Debug.Log(">> SelectOrderedDialogue " + dialogue.dialogue.Split("\n"));
+        return dialogue.dialogue.Split("\n");
     }
 
     private void UpdateBlacklist(
@@ -457,7 +488,6 @@ public class AIThing : MonoBehaviour
     )
     {
         string url = $"https://www.youtube.com/watch?v={videoId}";
-
         using (WebClient client = new WebClient())
         {
             string html = await client.DownloadStringTaskAsync(url);
@@ -521,12 +551,14 @@ public class AIThing : MonoBehaviour
         SaveCurrentTopic(topic);
         List<Dialogue2> dialogues = new List<Dialogue2>();
         // TODO: Handle request for meshup with Youtube song
-        if (topic.Contains("sings https://www.youtube.com/watch?v="))
+        string ytQuery = "мешап https://www.youtube.com/watch?v=";
+        if (topic.Contains(ytQuery))
         {
-            string[] topicParts = topic.Split(new string[] { " sings https://www.youtube.com/watch?v=" }, StringSplitOptions.None);
-            string characterName = topicParts[0];
-            string videoId = topicParts[1]; // Extract the video ID directly
-            currentTopic = await SetCurrentTopicFromYouTubeLink(characterName, videoId);
+            string[] topicParts = topic.Split(ytQuery);
+            string characterName = topicParts[0].Trim();
+            string videoId = topicParts[1].Trim();
+            currentTopic = 
+                await SetCurrentTopicFromYouTubeLink(characterName, videoId);
 
             OnTopicSelected?.Invoke(currentTopic); // Invoke after setting the current topic
 
@@ -538,7 +570,6 @@ public class AIThing : MonoBehaviour
                 characterSwitches.Add(TimeSpan.FromSeconds(int.Parse(characterAndTimeParts[i + 1])), characterAndTimeParts[i]);
             }
             OnDialogueLineFullyGenerated?.Invoke(-1);
-
 
             try
             {
@@ -552,15 +583,12 @@ public class AIThing : MonoBehaviour
 
             // Create a new Y2Sharp.Youtube.Video object
             var video = new Y2Sharp.Youtube.Video();
-
             string audioDirectoryPath = Path.Combine(Application.dataPath, "Audio");
             if (!Directory.Exists(audioDirectoryPath))
             {
                 Directory.CreateDirectory(audioDirectoryPath);
             }
-
             string audioFilePath = Path.Combine(audioDirectoryPath, $"{videoId}.wav");
-
             // Download the video as a WAV file
             await video.DownloadAsync(audioFilePath, "mp3", "128");
 
@@ -611,6 +639,14 @@ public class AIThing : MonoBehaviour
             }           
             EraseNextFile();
             return resultArray.ToArray();
+        }
+        return new string[] { };
+    }
+
+    private string[] GetScriptLinesFromJson() {
+        if (File.Exists(_dialoguesOrderedPath))
+        {
+            return SelectOrderedDialogue();
         }
         return new string[] { };
     }
@@ -1086,11 +1122,12 @@ public class AIThing : MonoBehaviour
             {
                 yield return null;
             }
-            if (audioSource.isPlaying)
-            {
-                audioSource.Stop();
-                if (character != null) character.StopSpeaking();
-            }
+            audioSource.Stop();
+            if (character != null) character.StopSpeaking();
+            // if (audioSource.isPlaying)
+            // {
+            //     if (character != null) character.StopSpeaking();
+            // }
         }
     }
     

@@ -60,4 +60,10 @@ namespace DialogueAI
         public string updated_at { get; set; }
     }
 
+    public class OrderedDialogue
+    {
+        public string topic { get; set; }
+        public string dialogue { get; set; }
+    }
+
 }

@@ -17,6 +17,8 @@ public abstract class BaseCharacter : MonoBehaviour
     [Header("NavMesh agent settings")]
     [SerializeField, Range(0, 4)] float moveSpeed = 1.5f;
     public float MoveSpeed { get { return moveSpeed; } }
+    [SerializeField, Range(0, 4)] float baseOffset = 1.303f;
+    public float BaseOffset { get { return baseOffset; } }
     [SerializeField, Range(0, 8)] float acceleration = 3;
     public float Acceleration { get { return acceleration; } }
     [SerializeField, Range(0, 400)] float rotateSpeed = 250f;
@@ -44,6 +46,9 @@ public abstract class BaseCharacter : MonoBehaviour
     private bool waitTimerFinish = false;
     private float stuckThreshold = -1f;
     public bool disableAllMovement = false;
+
+    [SerializeField] string name;
+
     #endregion
 
     #region Abstract functions
@@ -69,14 +74,16 @@ public abstract class BaseCharacter : MonoBehaviour
 
     public void StartSpeaking()
     {
+        disableAllMovement = true;
         isSpeaking = true;
-        if (Anim) Anim.SetBool("isSpeaking", true);
+        if (Anim) Anim.SetBool("isSpeaking", isSpeaking);
     }
 
     public void StopSpeaking()
     {
+        disableAllMovement = false;
         isSpeaking = false;
-        if (Anim) Anim.SetBool("isSpeaking", false);
+        if (Anim) Anim.SetBool("isSpeaking", isSpeaking);
     }
 
     private void Update()
@@ -98,12 +105,26 @@ public abstract class BaseCharacter : MonoBehaviour
                 );
             }
 
-            if (isSpeaking) Agent.isStopped = true;
+            if (isSpeaking) {
+                // if (name == "Doomer_wrapper") Debug.Log(">> isSpeaking true");
+                Agent.isStopped = true;
+                if (Anim != null) Anim.SetBool("isStopped", Agent.isStopped);
+            } 
             else
             {
+                // if (name == "Doomer_wrapper") Debug.Log(">> isSpeaking false");
                 Agent.isStopped = false;
+                if (Anim != null) Anim.SetBool("isStopped", Agent.isStopped);
                 ControlMovement();
             }
+        }
+
+        if (DestinationReached) {
+            Agent.isStopped = true;
+            if (Anim != null) Anim.SetBool("isStopped", Agent.isStopped);
+        } else {
+            Agent.isStopped = false;
+            if (Anim != null) Anim.SetBool("isStopped", Agent.isStopped);
         }
 
         if (DestinationReached && speakingCharacter)
@@ -114,7 +135,6 @@ public abstract class BaseCharacter : MonoBehaviour
         {
             LookAt(lookAtTarget);
         }
-        HandleAnimations();
         Tick();
     }
 
@@ -131,9 +151,17 @@ public abstract class BaseCharacter : MonoBehaviour
     }
 
     public bool DestinationReached => 
-        Vector3.Distance(
+        Distance(
             transform.position, Agent.destination
         ) < 0.1f || stuckThreshold == -1f;
+
+    
+    private float Distance(Vector3 a, Vector3 b)
+    {
+        float num = a.x - b.x;
+        float num2 = a.z - b.z;
+        return (float)System.Math.Sqrt(num * num + num2 * num2);
+    }
     
     public bool HasPath => Agent.hasPath;
 
@@ -188,11 +216,6 @@ public abstract class BaseCharacter : MonoBehaviour
             new(transform.position.x, transform.position.z);
         Vector2 targetPos = new(position.x, position.z);
         return Vector2.Distance(characterPos, targetPos) < 0.1f;
-    }
-
-    private void HandleAnimations()
-    {
-        return;
     }
 
     private void ControlMovement()
@@ -314,6 +337,8 @@ public abstract class BaseCharacter : MonoBehaviour
         if (!Agent || disableAllMovement) return;
         startingPos = transform.position;
         Agent.speed = MoveSpeed;
+        Agent.baseOffset = BaseOffset;
+        Agent.acceleration = Acceleration;
         Agent.angularSpeed = RotationSpeed;
         randomMovement = moveRandomly;
         stuckThreshold = -1f;

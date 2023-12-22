@@ -60,7 +60,6 @@ public class LocationManager : MonoBehaviour
             }
         }
 
-        // Callback for prompt and other scripts
         OnNewPointOfInterest?.Invoke(selectedPoint);
     }
 

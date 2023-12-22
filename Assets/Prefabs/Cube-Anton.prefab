@@ -115,7 +115,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &-6183416997192485460
 MonoBehaviour:
@@ -133,6 +133,7 @@ MonoBehaviour:
   agent: {fileID: 4637582466576491528}
   anim: {fileID: 0}
   moveSpeed: 1.5
+  baseOffset: 1.303
   acceleration: 3
   rotateSpeed: 250
   lookAtRotationSpeed: 3
@@ -145,11 +146,13 @@ MonoBehaviour:
   chanceRate_P: 50
   predeterminedTransforms: []
   disableAllMovement: 0
+  name: 
   characterData:
     name: Antosha
     prefixes:
     - "\u0410\u043D\u0442\u043E\u0448\u0430"
     - Antosha
+    - "\u0410\u041D\u0422\u041E\u0428\u0410"
     voicemodelUuid: uk-UA-OstapNeural
   type: 13
   audioSource: {fileID: 0}

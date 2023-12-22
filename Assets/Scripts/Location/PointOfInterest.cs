@@ -24,6 +24,7 @@ public class PointOfInterest : MonoBehaviour
     public struct CameraSettings
     {
         public Vector3 followOffset;
+        public float xDamping;
         public float nearClipPlane;
     }
 

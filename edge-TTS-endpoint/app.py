@@ -38,14 +38,26 @@ def edge_tts():
     json_input = json.loads("{}")
     if ('application/json' in content_type):
         json_input = request.json
-    name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16)) + ".mp3"
-    completedProcess = subprocess.run(["edge-tts", "--voice", json_input['model'], "--text", json_input['text'], "--write-media", name])
+    name = ''.join(
+        random.choice(
+            string.ascii_uppercase + string.ascii_lowercase + 
+            string.digits
+        ) for _ in range(16)
+    ) + ".mp3"
+    completedProcess = subprocess.run([
+        "edge-tts", "--voice", json_input['model'], "--text", 
+        json_input['text'], "--write-media", "audio/" + name
+    ])
     audioPath = ''
     if (completedProcess.returncode == 0):
-        audioPath = "file://" + os.path.dirname(os.path.realpath(__file__)) + '/' + name
+        audioPath = "file://" + os.path.dirname(os.path.realpath(__file__)) + '/audio/' + name
     string_json = '{"status": "%s", "audioPath": "%s"}' % (completedProcess.returncode, audioPath)
     json_output = json.loads(string_json)
     return json_output
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
+
+    # launching: 
+    # 1) source venv/bin/activate
+    # 2) python app.py

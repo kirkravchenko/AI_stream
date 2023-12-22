@@ -255,6 +255,7 @@ MonoBehaviour:
   agent: {fileID: 242003283318389456}
   anim: {fileID: 0}
   moveSpeed: 1.5
+  baseOffset: 1.303
   acceleration: 3
   rotateSpeed: 250
   lookAtRotationSpeed: 3
@@ -268,12 +269,14 @@ MonoBehaviour:
   predeterminedTransforms:
   - {fileID: 0}
   disableAllMovement: 0
+  name: 
   characterData:
     name: Kir
     prefixes:
     - "\u041A\u0438\u0440"
     - Doomer
     - "\u0414\u0443\u043C\u0435\u0440"
+    - "\u041A\u0418\u0420"
     voicemodelUuid: ru-RU-DmitryNeural
   type: 11
   audioSource: {fileID: 0}

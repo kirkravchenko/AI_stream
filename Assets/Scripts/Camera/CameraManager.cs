@@ -46,8 +46,10 @@ public class CameraManager : MonoBehaviour
 
         var transposer = 
             vCam.GetCinemachineComponent<CinemachineTransposer>();
+        // transposer.m_BindingMode = CinemachineTransposer.BindingMode.SimpleFollowWithWorldUp;
         transposer.m_FollowOffset = poe.cameraSettings.followOffset;
         vCam.m_Lens.NearClipPlane = poe.cameraSettings.nearClipPlane;
+        transposer.m_XDamping = poe.cameraSettings.xDamping;
     }
 
     private void OnDestroy()
