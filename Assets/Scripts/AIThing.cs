@@ -99,8 +99,9 @@ public class AIThing : MonoBehaviour
             )
         )
     );
+    public OrderedDialogue currentOrderedDialogue;
     static Queue<List<Dialogue2>> _dialogues = new Queue<List<Dialogue2>>();
-    public bool IsTopicOrdered => LoadCurrentTopic().Contains("тема на заказ");
+    public bool IsTopicOrdered => _dialoguesOrdered.Count > 0;
     #endregion
 
     #region proxies
@@ -127,7 +128,9 @@ public class AIThing : MonoBehaviour
 
     async void Init()
     {
-        if (_topics.Count == 0 && _dialogues.Count == 0)
+        if (_topics.Count == 0 
+            && _dialogues.Count == 0 
+                && _dialoguesOrdered.Count == 0)
         {
             ShowIntroAndReloadScene("Main", 10f);
             return;
@@ -322,12 +325,24 @@ public class AIThing : MonoBehaviour
 
     private string SelectTopic()
     {
-        string topic = _topics.Dequeue();
-        File.WriteAllText(
-            $"{Environment.CurrentDirectory}" + _topicsPath, 
-            JsonConvert.SerializeObject(_topics.ToList())
-        );
-        return topic;
+        if (IsTopicOrdered) 
+        {
+            currentOrderedDialogue = _dialoguesOrdered.Dequeue();
+            File.WriteAllText(
+                $"{Environment.CurrentDirectory}" + _dialoguesOrderedPath, 
+                    JsonConvert.SerializeObject(_dialoguesOrdered.ToList())
+            );
+            return currentOrderedDialogue.topic;   
+        }
+        else 
+        {
+            string topic = _topics.Dequeue();
+            File.WriteAllText(
+                $"{Environment.CurrentDirectory}" + _topicsPath, 
+                JsonConvert.SerializeObject(_topics.ToList())
+            );
+            return topic;
+        }
     }
 
         private string[] SelectOrderedDialogue()
@@ -337,7 +352,6 @@ public class AIThing : MonoBehaviour
             $"{Environment.CurrentDirectory}" + _dialoguesOrderedPath, 
             JsonConvert.SerializeObject(_dialoguesOrdered.ToList())
         );
-        Debug.Log(">> SelectOrderedDialogue " + dialogue.dialogue.Split("\n"));
         return dialogue.dialogue.Split("\n");
     }
 
@@ -626,19 +640,26 @@ public class AIThing : MonoBehaviour
 
     private string[] CheckAndGetScriptLines()
     {
-        List<string> resultArray = new List<string>();
-        if (File.Exists(_nextPath))
+        if (currentOrderedDialogue != null)
         {
-            var lines = File.ReadAllLines(_nextPath);
-            for (int i = 0; i < lines.Length; i++)
+            return currentOrderedDialogue.dialogue.Split("\n");
+        }
+        else 
+        {
+            List<string> resultArray = new List<string>();
+            if (File.Exists(_nextPath))
             {
-                if (!(lines[i].Length == 0)) 
+                var lines = File.ReadAllLines(_nextPath);
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    resultArray.Add(lines[i]);
-                }
-            }           
-            EraseNextFile();
-            return resultArray.ToArray();
+                    if (!(lines[i].Length == 0)) 
+                    {
+                        resultArray.Add(lines[i]);
+                    }
+                }           
+                EraseNextFile();
+                return resultArray.ToArray();
+            }
         }
         return new string[] { };
     }
@@ -924,6 +945,7 @@ public class AIThing : MonoBehaviour
 
     private async Task GenerateNext(string topic)
     {
+        if (currentOrderedDialogue != null) return;
         var request = new CreateCompletionRequest
         {
             Model = "gpt-3.5-turbo-instruct",

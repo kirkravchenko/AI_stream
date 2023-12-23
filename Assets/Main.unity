@@ -1168,7 +1168,7 @@ MonoBehaviour:
     narratorSpawnPoint: {fileID: 70805790}
   predeterminedPaths: []
   cameraSettings:
-    followOffset: {x: 0, y: 0.7, z: -1.5}
+    followOffset: {x: 0, y: 0.7, z: -3}
     xDamping: 50
     nearClipPlane: 0.2
   areaSize: {x: 0, y: 0, z: 0}
@@ -2141,7 +2141,7 @@ MonoBehaviour:
     narratorSpawnPoint: {fileID: 1136344181}
   predeterminedPaths: []
   cameraSettings:
-    followOffset: {x: 0, y: 0.7, z: -1.5}
+    followOffset: {x: 0, y: 0.7, z: -3}
     xDamping: 50
     nearClipPlane: 0.2
   areaSize: {x: 0, y: 0, z: 0}
@@ -2215,7 +2215,7 @@ MonoBehaviour:
     narratorSpawnPoint: {fileID: 1753514431}
   predeterminedPaths: []
   cameraSettings:
-    followOffset: {x: 0, y: 0.7, z: -1.5}
+    followOffset: {x: 0, y: 0.7, z: -3}
     xDamping: 50
     nearClipPlane: 0.2
   areaSize: {x: 0, y: 0, z: 0}
